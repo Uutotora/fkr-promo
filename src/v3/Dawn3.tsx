@@ -61,8 +61,9 @@ export const Dawn3: React.FC = () => {
     <AbsoluteFill style={{ fontFamily: FONT }}>
       {/* the turn line */}
       <div style={{ position: "absolute", left: 0, right: 0, top: 300, display: "flex", justifyContent: "center", opacity: lineK }}>
-        <div style={{ overflow: "hidden", paddingBottom: 10 }}>
-          <div style={{ fontSize: 64, fontWeight: 800, letterSpacing: "-0.03em", color: "#fff", textShadow: "0 0 60px rgba(120,150,255,0.6)", translate: `0 ${(1 - lineK) * 100}%` }}>
+        {/* the mask leaves room for the glow, so it is never cut into a box */}
+        <div style={{ overflow: "hidden", padding: "70px 120px", margin: "-70px -120px" }}>
+          <div style={{ fontSize: 64, fontWeight: 800, letterSpacing: "-0.03em", color: "#fff", textShadow: "0 0 60px rgba(120,150,255,0.6)", translate: `0 ${(1 - lineK) * 200}%` }}>
             Пора собрать всё <span style={{ color: C.orange }}>в одном окне</span>
           </div>
         </div>

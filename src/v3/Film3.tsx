@@ -6,7 +6,7 @@ import { FPS, TimeShift, applyHolds, tw, type Hold } from "../lib";
 import { HOLDS, HOLD_EXTRA } from "./holds";
 import { Moscow } from "./Moscow";
 import { Hook } from "../v2/Hook";
-import { Now4 } from "./Now4";
+import { Now5 } from "./Now5";
 import { Dawn3 } from "./Dawn3";
 import { Ai3 } from "./Ai3";
 import { Market4 } from "./Market4";
@@ -34,7 +34,7 @@ type Item = { at: [number, number]; shift?: number; holds?: Hold[]; C: React.FC;
 const ITEMS: Item[] = [
   { at: [0, 39.45], C: Moscow },
   { at: [0, 8.2], C: Hook },
-  { at: [8, 33.6], C: Now4 },
+  { at: [8, 33.6], C: Now5 },
   { at: [38.4, 49.05], shift: 19, C: Dash, fadeIn: 0.45 },
   { at: [33, 39.4], shift: 9, C: Dawn3 },
   { at: [49, 57.05], shift: 19, C: S5Objects },
@@ -49,6 +49,9 @@ const ITEMS: Item[] = [
 
 const SWEEPS: { t: number; dark?: boolean; dir?: 1 | -1 }[] = [];
 
+/** Shallow depth of field on the city while the «как сейчас» object is in focus. */
+const dof = (s: number) => tw(s, [8.6, 9.6], [0, 3.5]) * (1 - tw(s, [32.3, 33.2], [0, 1]));
+
 export const Film3: React.FC<{ withAudio?: boolean }> = ({ withAudio = true }) => {
   // the v5 clock: real film time with the reading holds taken out
   const s = applyHolds(useCurrentFrame() / FPS, HOLDS);
@@ -57,7 +60,7 @@ export const Film3: React.FC<{ withAudio?: boolean }> = ({ withAudio = true }) =
       {ITEMS.map(({ at: [a, b], shift = 0, holds, C, fadeIn }, i) => {
         if (s < a || s >= b) return null;
         return (
-          <AbsoluteFill key={i} style={{ opacity: fadeIn ? tw(s, [a, a + fadeIn], [0, 1]) : 1 }}>
+          <AbsoluteFill key={i} style={{ opacity: fadeIn ? tw(s, [a, a + fadeIn], [0, 1]) : 1, filter: C === Moscow && dof(s) > 0.05 ? `blur(${dof(s)}px)` : undefined }}>
             <TimeShift by={shift} holds={holds} global={HOLDS}>
               <C />
             </TimeShift>

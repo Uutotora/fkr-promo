@@ -459,16 +459,14 @@ for i in range(5):
     _fx_add(D.ui_tick(1800 + i * 120, 0.45, body=False), P[i] + 0.05, 0.12, -0.6)        # the counter rolls
 # 01 · the question opens and splits into four systems
 t = P[0]
-_fx_add(morph(0.6, 64, 71, (0.2, 0.2), 4000), t - 0.2, 0.16)
-for q, tq in enumerate(np.linspace(t + 0.3, t + 1.05, 16)):
-    _fx_add(D.ui_tick(3200 + (q % 5) * 170, 0.32, body=False), tq, 0.09, 0.2)
-_fx_add(morph(0.7, 67, 74, (-0.3, 0.3)), t + 0.9, 0.16)
+for q, tq in enumerate(np.linspace(t + 0.05, t + 0.75, 15)):
+    _fx_add(D.ui_tick(3200 + (q % 5) * 170, 0.3, body=False), tq, 0.08, 0.2)               # the question types
 for j in range(4):
-    _fx_add(land([72, 76, 79, 83][j], 0.45, -0.5 + j * 0.33), t + 1.55 + j * 0.07, 0.12)
-    _fx_add(D.data_chirps(0.5, 24, 2500, 6000, seed=100 + j), t + 1.5 + j * 0.1, 0.05)
-for j in range(4):
-    _fx_add(st(felt([76, 77, 76, 77][j], 1.4, 0.5)), t + 2.4 + j * 0.12, 0.16, -0.4 + j * 0.27)  # ≠ — a rub of seconds
-_fx_add(D.verb(st(felt(74, 2.4, 0.6) + felt(77, 2.4, 0.5)), 0.4), t + 3.0, 0.26)
+    _fx_add(morph(0.55, 60 + j * 3, 67 + j * 3, (-0.4 + j * 0.27, -0.4 + j * 0.27), 3500), t + 0.5 + j * 0.12, 0.08)  # slabs rise out of depth
+    _fx_add(land([72, 76, 79, 83][j], 0.4, -0.5 + j * 0.33), t + 1.25 + j * 0.12, 0.1)
+    _fx_add(D.data_chirps(0.6, 22, 2500, 6000, seed=100 + j), t + 1.1 + j * 0.12, 0.04)        # numbers count
+_fx_add(D.verb(st(felt(76, 2.4, 0.55) + felt(77, 2.4, 0.45)), 0.45), t + 2.15, 0.14)          # the «?» — a rub of seconds
+_fx_add(D.verb(st(felt(74, 2.4, 0.6) + felt(77, 2.4, 0.5)), 0.4), t + 2.9, 0.24)
 # → four become one request
 o_ = O[0]
 _fx_add(morph(0.8, 74, 62, (-0.4, 0.0)), o_, 0.2)
@@ -478,8 +476,9 @@ t = P[1]
 for j, ta in enumerate([t + 1.35, t + 2.5]):
     _fx_add(paper(0.4, 0.6), ta - 0.1, 0.22)
     _fx_add(land([72, 74][j], 0.5, 0.3), ta + 0.2, 0.12)
-for ts in (t + 1.6, t + 2.75):
-    _fx_add(D.stamp(0.45), ts, 0.14)
+for ts in (t + 1.7, t + 2.85):                                                               # the old version is struck out
+    _fx_add(paper(0.35, -0.5), ts, 0.16)
+    _fx_add(D.verb(st(felt(63, 1.6, 0.45)), 0.4), ts + 0.05, 0.12)
 for j, tc in enumerate([t + 1.0, t + 2.1, t + 3.2]):
     for q in range(7):
         _fx_add(st(hp(rng.standard_normal(int(0.03 * SR)), 2500) * np.hanning(int(0.03 * SR))), tc + q * 0.075, 0.04)
@@ -488,21 +487,16 @@ _fx_add(D.verb(st(felt(72, 2.4, 0.6) + felt(77, 2.4, 0.5)), 0.4), t + 3.6, 0.24)
 # → the request is loaded as the truck's cargo; the street grows around it
 o_ = O[1]
 _fx_add(morph(0.8, 69, 57, (0.0, -0.4)), o_ + 0.02, 0.2)
-_fx_add(land(60, 0.7, -0.4), o_ + 0.8, 0.18)
-_fx_add(morph(0.65, 55, 62, (-0.6, 0.6), 3000), o_ + 0.35, 0.1)                         # the road draws out
+_fx_add(D.glass_ping(84, 0.6, 1.8), o_ + 0.8, 0.14, -0.4)                                 # a point of light
+_fx_add(morph(0.7, 55, 62, (-0.6, 0.6), 3000), o_ + 0.55, 0.08)                         # the route draws out
 t = P[2]
-for j, tb in enumerate([t + 0.1, t + 0.2, t + 0.3, t + 0.4]):
-    _fx_add(D.verb(st(felt([57, 60, 64, 65][j], 2.0, 0.4)), 0.4), tb, 0.12)              # buildings and lamps rise
-_fx_add(D.ui_tick(1500, 0.6), t + 0.55, 0.14)                                            # the cab clicks on
-for a, b in [(t + 0.75, t + 1.75), (t + 2.3, t + 3.15), (t + 3.35, t + 4.2)]:
-    d = b - a
-    tt = T(d + 0.3)
-    eng = (np.sign(np.sin(2 * np.pi * np.cumsum(50 + 22 * np.sin(np.pi * np.clip(tt / d, 0, 1))) / SR)) * 0.4 + rng.standard_normal(len(tt)) * 0.3)
-    eng = lp(eng, 480) * np.sin(np.pi * np.clip(tt / (d + 0.3), 0, 1)) ** 0.8
-    _fx_add(st(eng, 0), a, 0.13)
-_fx_add(D.verb(st(felt(64, 2.0, 0.6) + felt(65, 2.0, 0.45)), 0.4), t + 1.8, 0.2)          # not ready
-for tc in (t + 2.3, t + 3.35):
-    _fx_add(D.ui_tick(1400, 0.6), tc, 0.16, -0.6)
+for j, tb in enumerate([t + 0.1, t + 0.22]):
+    _fx_add(D.glass_ping([81, 84][j], 0.45, 1.4), tb, 0.08, [-0.5, 0.5][j])                 # the two ends of the route
+for j, (a, b, up) in enumerate([(t + 0.7, t + 1.7, 1), (t + 2.25, t + 3.1, -1), (t + 3.3, t + 4.15, 1)]):
+    _fx_add(morph(b - a + 0.1, 64 + j * 2, 64 + j * 2 + 5 * up, (-0.6 * up, 0.6 * up), 3800), a, 0.13)  # each trip, an arc of light
+_fx_add(D.verb(st(felt(64, 2.0, 0.6) + felt(65, 2.0, 0.45)), 0.4), t + 1.75, 0.2)         # the object is not ready
+for tc in (t + 2.25, t + 3.3):
+    _fx_add(D.ui_tick(1400, 0.55), tc, 0.14, -0.6)                                         # the counter rolls
 _fx_add(D.verb(st(felt(72, 2.4, 0.6) + felt(76, 2.4, 0.5)), 0.4), t + 3.6, 0.24)
 # → the street sinks, the truck becomes a dot of light, the road bends into a ring
 o_ = O[2]
@@ -531,7 +525,7 @@ def _bez(p1x, p1y, p2x, p2y):
 _inout = _bez(0.65, 0, 0.35, 1)
 _xs = np.linspace(0, 1, 4001)
 _turn = np.array([1.75 * _inout(x) for x in _xs])
-A0 = 90 - (270 / 880 * 2 * np.pi * 200 / 200) * 180 / np.pi                               # where the dot lands on the ring
+A0 = -90                                                                                    # the point of light lands on top
 for kq, node in enumerate([0, 90, 180, 270, 360, 450, 540]):
     need = (node - A0) / 360
     if need > 1.75:
@@ -543,7 +537,7 @@ for kq, node in enumerate([0, 90, 180, 270, 360, 450, 540]):
 _fx_add(morph(2.45, 64, 69, (-0.6, 0.6), 2200), t + 0.6, 0.05)                         # the comet's hum
 _fx_add(D.verb(st(felt(57, 2.0, 0.6) + felt(58, 2.0, 0.5)), 0.4), t + 3.05, 0.2)          # the ring turns red
 _fx_add(D.reverse_swell(0.3, 5000), t + 2.95, 0.12)
-_fx_add(D.stamp(0.7), t + 3.42, 0.2)                                                      # «АННУЛИРОВАНА»
+_fx_add(bloom(38, 0.6), t + 3.15, 0.3)                                                     # «АННУЛИРОВАНА» — a red bloom
 _fx_add(morph(0.8, 62, 50, (0, 0), 2500), t + 3.45, 0.08)                                # shockwave
 # → the ring folds into a sheet of paper; the sheet is copied three times
 o_ = O[3]
@@ -556,8 +550,9 @@ for i in range(3):
     at0 = t + 0.95 + i * 0.25
     for q, tq in enumerate(np.linspace(at0, at0 + 1.0, 16)):
         _fx_add(D.ui_tick(3200 + (q % 5) * 170, 0.3, body=False), tq, 0.08, -0.6 + i * 0.6)
+for i in range(3):
+    _fx_add(paper(0.3, -0.6 + i * 0.6), t + 2.45 + i * 0.12, 0.1)                             # the marker passes
 _fx_add(st(felt(76, 1.6, 0.5) + felt(77, 1.6, 0.4)), t + 2.2, 0.12, 0.6)                 # one copy is wrong
-_fx_add(morph(0.5, 64, 72, (0, 0), 3000), t + 2.6, 0.08)
 _fx_add(D.verb(st(felt(74, 2.6, 0.6) + felt(79, 2.6, 0.5)), 0.4), t + 3.0, 0.26)          # «Это одна позиция?»
 # → three copies merge into one lit window that drops into the waking city
 o_ = O[4]
