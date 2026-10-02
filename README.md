@@ -2,10 +2,10 @@
 
 Промо-ролик для прототипа единой системы ФКР Москвы. Сделан кодом на [Remotion](https://www.remotion.dev/): каждый экран интерфейса перерисован как анимированный React-компонент, без скриншотов. Звук синтезирован под монтаж на Python.
 
-**Текущая версия:** 3:08, 1920×1080, 60 fps — композиция `Promo` (`src/v3/Film3.tsx`).
+**Текущая версия:** 3:09, 1920×1080, 60 fps — композиция `Promo` (`src/v3/Intro.tsx` — заставка с логотипом ФКР, затем `src/v3/Film3.tsx`).
 
 - Смотреть сразу: [`preview/fkr-promo-final-preview.mp4`](preview/fkr-promo-final-preview.mp4) — сжатое превью
-- Полное качество всех версий и саундтрек: [Releases → v6](https://github.com/Uutotora/fkr-promo/releases/tag/v6)
+- Полное качество всех версий и саундтрек: [Releases → v7](https://github.com/Uutotora/fkr-promo/releases/tag/v7)
 
 ## Сюжет
 
@@ -28,7 +28,7 @@ npx remotion studio          # интерактивный просмотр
 npx remotion render Promo out/fkr-promo.mp4 --codec h264 --crf 16
 ```
 
-Финальный рендер без мерцания делался с суперсэмплингом: `PromoSilent` в 4K (`--scale=2`), затем уменьшение до 1080p (lanczos) и наложение `public/audio/v5/soundtrack.wav`.
+Финальный рендер без мерцания делался с суперсэмплингом: `PromoFinalSilent` в 4K (`--scale=2`), затем уменьшение до 1080p (lanczos) и наложение `public/audio/final/soundtrack.wav`. `PromoNoIntro` — тот же ролик без заставки.
 
 Паузы для чтения задаются в `src/v3/holds.ts`; тот же список повторён в `audio/build_v5.py` (`HOLD_RAW`), чтобы звук совпадал с картинкой.
 
@@ -38,7 +38,8 @@ npx remotion render Promo out/fkr-promo.mp4 --codec h264 --crf 16
 
 ```sh
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-.venv/bin/python audio/build_v5.py   # → public/audio/v5/soundtrack.wav
+.venv/bin/python audio/build_v5.py     # → public/audio/v5/soundtrack.wav (ролик)
+.venv/bin/python audio/build_final.py  # → public/audio/final/soundtrack.wav (заставка + ролик)
 ```
 
 Синтез описан в `audio/design.py` (удары, вжухи, райзеры, UI-звуки), партитура — в `audio/build_v5.py`. Звуки интерфейса — Kenney (CC0), лежат в `sfxsrc/`. Лицензионные звуки можно положить в `sfx_user/`, список слотов — в `sfx_user/README.md`.
