@@ -1,0 +1,11 @@
+node_modules/
+.venv/
+__pycache__/
+out/
+stills/
+capture/
+sc.json
+public/image.png
+sfxsrc/rm_*.wav
+*.log
+.DS_Store

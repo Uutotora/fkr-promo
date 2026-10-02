@@ -1,0 +1,104 @@
+{
+  "title": "Цена повторения — audio QA",
+  "duration_seconds": 60,
+  "frames": 3600,
+  "sample_rate": 48000,
+  "channels": 2,
+  "subtype": "PCM_24",
+  "timeline_sha256": "f76b289439234b12a77b1d3c7742d599f2f3289982a106d17032c5ec75be7e73",
+  "picture_events": 67,
+  "logged_events": 99,
+  "loudness_lufs": -14.118742060630515,
+  "true_peak_dbfs_4x": -1.499998777580335,
+  "aac_320k_true_peak_dbfs_4x": -1.3170132157281667,
+  "sample_peak_dbfs": -1.5055272677757758,
+  "nonfinite_samples": 0,
+  "clipped_samples": 0,
+  "dc_left_right": [
+    -1.5398955717682837e-05,
+    -1.3608675160341793e-05
+  ],
+  "worst_one_second_dc": 0.0011330129901568095,
+  "lr_correlation": 0.4681801557040778,
+  "mono_to_stereo_rms_db": -1.342523699281923,
+  "silence_frame_start": 1428,
+  "silence_frame_end_exclusive": 1440,
+  "silence_pcm_nonzero_samples": 0,
+  "silence_pcm_rms_dbfs": -300.0,
+  "silence_start_boundary_step": 0.0,
+  "drop_start_boundary_step": 0.0,
+  "stem_sum_max_absolute_error": 3.5762786865234375e-07,
+  "aac_silence_interior_rms_dbfs": -300.0,
+  "max_adjacent_sample_step": 0.2598268985748291,
+  "max_adjacent_step_at_seconds": 27.501479166666666,
+  "adjacent_step_percentile_99_99": 0.14756811447144047,
+  "limiter_max_reduction_db": 3.698541242457293,
+  "limiter_samples_reduced_over_3db_percent": 0.03854166666666667,
+  "last_frame_peak_dbfs": -115.5512372918666,
+  "windows": [
+    {
+      "start": 0,
+      "end": 8,
+      "rms_dbfs": -21.36830280616604,
+      "peak_dbfs": -5.392023782593476
+    },
+    {
+      "start": 8,
+      "end": 16,
+      "rms_dbfs": -20.955512014901974,
+      "peak_dbfs": -6.0195728187852655
+    },
+    {
+      "start": 16,
+      "end": 23.8,
+      "rms_dbfs": -14.568989340803455,
+      "peak_dbfs": -1.5055272677757758
+    },
+    {
+      "start": 23.8,
+      "end": 24,
+      "rms_dbfs": -300.0,
+      "peak_dbfs": -300.0
+    },
+    {
+      "start": 24,
+      "end": 24.3,
+      "rms_dbfs": -9.627533349573907,
+      "peak_dbfs": -1.5055272677757758
+    },
+    {
+      "start": 24,
+      "end": 38,
+      "rms_dbfs": -12.291433040221179,
+      "peak_dbfs": -1.5055272677757758
+    },
+    {
+      "start": 38,
+      "end": 50,
+      "rms_dbfs": -16.52633525897085,
+      "peak_dbfs": -3.098301909286233
+    },
+    {
+      "start": 50,
+      "end": 54,
+      "rms_dbfs": -14.843203230498055,
+      "peak_dbfs": -2.4633370955434177
+    },
+    {
+      "start": 54,
+      "end": 58,
+      "rms_dbfs": -14.669739301336138,
+      "peak_dbfs": -1.9839047097252451
+    },
+    {
+      "start": 58,
+      "end": 60,
+      "rms_dbfs": -22.03232434056533,
+      "peak_dbfs": -6.153293370954844
+    }
+  ],
+  "render_seconds": 11.79,
+  "verification_scope": "Code, numeric waveform/codec checks; no subjective listening claimed.",
+  "sources": "Original synthesis; existing definition-only audio/design.py primitives. No external purchases or generated media.",
+  "stem_note": "Shared master gain and linked limiter applied to every stem, so the four stems sum to master within PCM quantization error."
+}

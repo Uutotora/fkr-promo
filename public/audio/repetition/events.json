@@ -1,0 +1,784 @@
+[
+  {
+    "frame": 0,
+    "seconds": 0.0,
+    "bus": "motion",
+    "label": "Soft mechanical room air",
+    "gain": 0.013,
+    "pan": 0
+  },
+  {
+    "frame": 0,
+    "seconds": 0.0,
+    "bus": "music",
+    "label": "Act I — D minor, mechanical repetition",
+    "gain": 0.13,
+    "pan": 0
+  },
+  {
+    "frame": 18,
+    "seconds": 0.3,
+    "bus": "impacts",
+    "label": "opening-word",
+    "gain": 0.132,
+    "pan": 0.0
+  },
+  {
+    "frame": 90,
+    "seconds": 1.5,
+    "bus": "motion",
+    "label": "into-first-field",
+    "gain": 0.145,
+    "pan": 0
+  },
+  {
+    "frame": 144,
+    "seconds": 2.4,
+    "bus": "ui",
+    "label": "first-field",
+    "gain": 0.34,
+    "pan": 0.2
+  },
+  {
+    "frame": 162,
+    "seconds": 2.7,
+    "bus": "ui",
+    "label": "qty-1",
+    "gain": 0.24,
+    "pan": 0.2
+  },
+  {
+    "frame": 171,
+    "seconds": 2.85,
+    "bus": "ui",
+    "label": "qty-4",
+    "gain": 0.24,
+    "pan": 0.2
+  },
+  {
+    "frame": 180,
+    "seconds": 3.0,
+    "bus": "ui",
+    "label": "qty-44",
+    "gain": 0.24,
+    "pan": 0.2
+  },
+  {
+    "frame": 252,
+    "seconds": 4.2,
+    "bus": "motion",
+    "label": "repeat-to-register",
+    "gain": 0.145,
+    "pan": 0
+  },
+  {
+    "frame": 294,
+    "seconds": 4.9,
+    "bus": "ui",
+    "label": "repeat-field",
+    "gain": 0.34,
+    "pan": 0.25
+  },
+  {
+    "frame": 312,
+    "seconds": 5.2,
+    "bus": "ui",
+    "label": "repeat-1",
+    "gain": 0.24,
+    "pan": 0.0
+  },
+  {
+    "frame": 321,
+    "seconds": 5.35,
+    "bus": "ui",
+    "label": "repeat-4",
+    "gain": 0.24,
+    "pan": 0.0
+  },
+  {
+    "frame": 330,
+    "seconds": 5.5,
+    "bus": "ui",
+    "label": "repeat-44",
+    "gain": 0.24,
+    "pan": 0.0
+  },
+  {
+    "frame": 402,
+    "seconds": 6.7,
+    "bus": "impacts",
+    "label": "again",
+    "gain": 0.084,
+    "pan": 0.0
+  },
+  {
+    "frame": 450,
+    "seconds": 7.5,
+    "bus": "motion",
+    "label": "dive-between-layers",
+    "gain": 0.145,
+    "pan": 0
+  },
+  {
+    "frame": 510,
+    "seconds": 8.5,
+    "bus": "motion",
+    "label": "find-plane",
+    "gain": 0.105,
+    "pan": 0
+  },
+  {
+    "frame": 600,
+    "seconds": 10.0,
+    "bus": "motion",
+    "label": "manual-search",
+    "gain": 0.09,
+    "pan": 0.0
+  },
+  {
+    "frame": 672,
+    "seconds": 11.2,
+    "bus": "motion",
+    "label": "copy-plane",
+    "gain": 0.145,
+    "pan": 0
+  },
+  {
+    "frame": 702,
+    "seconds": 11.7,
+    "bus": "ui",
+    "label": "copy-data",
+    "gain": 0.34,
+    "pan": 0.0
+  },
+  {
+    "frame": 750,
+    "seconds": 12.5,
+    "bus": "motion",
+    "label": "compare-plane",
+    "gain": 0.145,
+    "pan": 0
+  },
+  {
+    "frame": 810,
+    "seconds": 13.5,
+    "bus": "motion",
+    "label": "compare",
+    "gain": 0.09,
+    "pan": 0.0
+  },
+  {
+    "frame": 900,
+    "seconds": 15.0,
+    "bus": "impacts",
+    "label": "time-is-in-repeats",
+    "gain": 0.108,
+    "pan": 0.0
+  },
+  {
+    "frame": 942,
+    "seconds": 15.7,
+    "bus": "motion",
+    "label": "same-row-new-system",
+    "gain": 0.145,
+    "pan": 0
+  },
+  {
+    "frame": 960,
+    "seconds": 16.0,
+    "bus": "motion",
+    "label": "7.8 second harmonic tension rise",
+    "gain": 0.125,
+    "pan": 0
+  },
+  {
+    "frame": 960,
+    "seconds": 16.0,
+    "bus": "music",
+    "label": "Build chord 1",
+    "gain": 0.19,
+    "pan": 0
+  },
+  {
+    "frame": 1008,
+    "seconds": 16.8,
+    "bus": "ui",
+    "label": "search-open",
+    "gain": 0.34,
+    "pan": 0.0
+  },
+  {
+    "frame": 1038,
+    "seconds": 17.3,
+    "bus": "ui",
+    "label": "search-n",
+    "gain": 0.24,
+    "pan": 0.0
+  },
+  {
+    "frame": 1044,
+    "seconds": 17.4,
+    "bus": "ui",
+    "label": "search-a",
+    "gain": 0.24,
+    "pan": 0.0
+  },
+  {
+    "frame": 1050,
+    "seconds": 17.5,
+    "bus": "ui",
+    "label": "search-g",
+    "gain": 0.24,
+    "pan": 0.0
+  },
+  {
+    "frame": 1056,
+    "seconds": 17.6,
+    "bus": "ui",
+    "label": "search-o",
+    "gain": 0.24,
+    "pan": 0.0
+  },
+  {
+    "frame": 1062,
+    "seconds": 17.7,
+    "bus": "ui",
+    "label": "search-r",
+    "gain": 0.24,
+    "pan": 0.0
+  },
+  {
+    "frame": 1068,
+    "seconds": 17.8,
+    "bus": "ui",
+    "label": "search-n",
+    "gain": 0.24,
+    "pan": 0.0
+  },
+  {
+    "frame": 1074,
+    "seconds": 17.9,
+    "bus": "ui",
+    "label": "search-a",
+    "gain": 0.24,
+    "pan": 0.0
+  },
+  {
+    "frame": 1080,
+    "seconds": 18.0,
+    "bus": "music",
+    "label": "Build chord 2",
+    "gain": 0.214,
+    "pan": 0
+  },
+  {
+    "frame": 1080,
+    "seconds": 18.0,
+    "bus": "ui",
+    "label": "search-ya",
+    "gain": 0.24,
+    "pan": 0.0
+  },
+  {
+    "frame": 1128,
+    "seconds": 18.8,
+    "bus": "ui",
+    "label": "choose-object",
+    "gain": 0.34,
+    "pan": 0.0
+  },
+  {
+    "frame": 1146,
+    "seconds": 19.1,
+    "bus": "motion",
+    "label": "request-form",
+    "gain": 0.105,
+    "pan": 0
+  },
+  {
+    "frame": 1200,
+    "seconds": 20.0,
+    "bus": "music",
+    "label": "Build chord 3",
+    "gain": 0.238,
+    "pan": 0
+  },
+  {
+    "frame": 1224,
+    "seconds": 20.4,
+    "bus": "ui",
+    "label": "quantity-focus",
+    "gain": 0.34,
+    "pan": 0.0
+  },
+  {
+    "frame": 1242,
+    "seconds": 20.7,
+    "bus": "ui",
+    "label": "qty-1",
+    "gain": 0.24,
+    "pan": 0.0
+  },
+  {
+    "frame": 1251,
+    "seconds": 20.85,
+    "bus": "ui",
+    "label": "qty-4",
+    "gain": 0.24,
+    "pan": 0.0
+  },
+  {
+    "frame": 1260,
+    "seconds": 21.0,
+    "bus": "ui",
+    "label": "qty-44",
+    "gain": 0.24,
+    "pan": 0.0
+  },
+  {
+    "frame": 1278,
+    "seconds": 21.3,
+    "bus": "ui",
+    "label": "conversion-3600",
+    "gain": 0.2,
+    "pan": 0.0
+  },
+  {
+    "frame": 1320,
+    "seconds": 22.0,
+    "bus": "music",
+    "label": "Build chord 4",
+    "gain": 0.262,
+    "pan": 0
+  },
+  {
+    "frame": 1338,
+    "seconds": 22.3,
+    "bus": "ui",
+    "label": "send-for-review",
+    "gain": 0.34,
+    "pan": 0.0
+  },
+  {
+    "frame": 1350,
+    "seconds": 22.5,
+    "bus": "motion",
+    "label": "Reverse air toward vacuum",
+    "gain": 0.3,
+    "pan": 0
+  },
+  {
+    "frame": 1356,
+    "seconds": 22.6,
+    "bus": "ui",
+    "label": "request-sent",
+    "gain": 0.2,
+    "pan": 0.0
+  },
+  {
+    "frame": 1380,
+    "seconds": 23.0,
+    "bus": "motion",
+    "label": "hero-row-through-camera",
+    "gain": 0.145,
+    "pan": 0
+  },
+  {
+    "frame": 1428,
+    "seconds": 23.8,
+    "bus": "master",
+    "label": "Absolute silence begins: 12 frames"
+  },
+  {
+    "frame": 1440,
+    "seconds": 24.0,
+    "bus": "impacts",
+    "label": "MAIN DROP: D2 brass-synth bloom",
+    "gain": 0.245,
+    "pan": 0
+  },
+  {
+    "frame": 1440,
+    "seconds": 24.0,
+    "bus": "impacts",
+    "label": "MAIN DROP: sub + body + textured crown",
+    "gain": 0.64,
+    "pan": 0
+  },
+  {
+    "frame": 1440,
+    "seconds": 24.0,
+    "bus": "impacts",
+    "label": "Timeline marker (score provides impact): main-drop"
+  },
+  {
+    "frame": 1440,
+    "seconds": 24.0,
+    "bus": "motion",
+    "label": "Drop stereo air tail",
+    "gain": 0.09,
+    "pan": 0
+  },
+  {
+    "frame": 1440,
+    "seconds": 24.0,
+    "bus": "music",
+    "label": "Drop progression bar 1",
+    "gain": 0.25,
+    "pan": 0
+  },
+  {
+    "frame": 1470,
+    "seconds": 24.5,
+    "bus": "motion",
+    "label": "zpm-source",
+    "gain": 0.105,
+    "pan": 0
+  },
+  {
+    "frame": 1560,
+    "seconds": 26.0,
+    "bus": "music",
+    "label": "Drop progression bar 2",
+    "gain": 0.25,
+    "pan": 0
+  },
+  {
+    "frame": 1578,
+    "seconds": 26.3,
+    "bus": "motion",
+    "label": "camera-to-or",
+    "gain": 0.145,
+    "pan": 0
+  },
+  {
+    "frame": 1608,
+    "seconds": 26.8,
+    "bus": "ui",
+    "label": "create-or",
+    "gain": 0.34,
+    "pan": 0.0
+  },
+  {
+    "frame": 1650,
+    "seconds": 27.5,
+    "bus": "motion",
+    "label": "or-filled",
+    "gain": 0.145,
+    "pan": 0
+  },
+  {
+    "frame": 1680,
+    "seconds": 28.0,
+    "bus": "music",
+    "label": "Drop progression bar 3",
+    "gain": 0.25,
+    "pan": 0
+  },
+  {
+    "frame": 1800,
+    "seconds": 30.0,
+    "bus": "motion",
+    "label": "camera-to-ugpt",
+    "gain": 0.145,
+    "pan": 0
+  },
+  {
+    "frame": 1800,
+    "seconds": 30.0,
+    "bus": "music",
+    "label": "Drop progression bar 4",
+    "gain": 0.25,
+    "pan": 0
+  },
+  {
+    "frame": 1830,
+    "seconds": 30.5,
+    "bus": "ui",
+    "label": "prepare-ugpt",
+    "gain": 0.34,
+    "pan": 0.0
+  },
+  {
+    "frame": 1872,
+    "seconds": 31.2,
+    "bus": "ui",
+    "label": "supplier-template",
+    "gain": 0.2,
+    "pan": 0.0
+  },
+  {
+    "frame": 1920,
+    "seconds": 32.0,
+    "bus": "music",
+    "label": "Drop progression bar 5",
+    "gain": 0.25,
+    "pan": 0
+  },
+  {
+    "frame": 2040,
+    "seconds": 34.0,
+    "bus": "motion",
+    "label": "camera-to-ugpm",
+    "gain": 0.145,
+    "pan": 0
+  },
+  {
+    "frame": 2040,
+    "seconds": 34.0,
+    "bus": "music",
+    "label": "Drop progression bar 6",
+    "gain": 0.25,
+    "pan": 0
+  },
+  {
+    "frame": 2070,
+    "seconds": 34.5,
+    "bus": "ui",
+    "label": "create-ugpm",
+    "gain": 0.34,
+    "pan": 0.0
+  },
+  {
+    "frame": 2112,
+    "seconds": 35.2,
+    "bus": "motion",
+    "label": "ugpm-filled",
+    "gain": 0.145,
+    "pan": 0
+  },
+  {
+    "frame": 2160,
+    "seconds": 36.0,
+    "bus": "music",
+    "label": "Drop progression bar 7",
+    "gain": 0.25,
+    "pan": 0
+  },
+  {
+    "frame": 2220,
+    "seconds": 37.0,
+    "bus": "motion",
+    "label": "to-responsible",
+    "gain": 0.145,
+    "pan": 0
+  },
+  {
+    "frame": 2280,
+    "seconds": 38.0,
+    "bus": "music",
+    "label": "Clarity bar 1",
+    "gain": 0.19,
+    "pan": 0
+  },
+  {
+    "frame": 2304,
+    "seconds": 38.4,
+    "bus": "motion",
+    "label": "control-header",
+    "gain": 0.105,
+    "pan": 0
+  },
+  {
+    "frame": 2400,
+    "seconds": 40.0,
+    "bus": "motion",
+    "label": "route-stations",
+    "gain": 0.105,
+    "pan": 0
+  },
+  {
+    "frame": 2400,
+    "seconds": 40.0,
+    "bus": "music",
+    "label": "Clarity bar 2",
+    "gain": 0.19,
+    "pan": 0
+  },
+  {
+    "frame": 2490,
+    "seconds": 41.5,
+    "bus": "ui",
+    "label": "open-route",
+    "gain": 0.34,
+    "pan": 0.0
+  },
+  {
+    "frame": 2520,
+    "seconds": 42.0,
+    "bus": "music",
+    "label": "Clarity bar 3",
+    "gain": 0.19,
+    "pan": 0
+  },
+  {
+    "frame": 2532,
+    "seconds": 42.2,
+    "bus": "ui",
+    "label": "current-responsible",
+    "gain": 0.2,
+    "pan": 0.0
+  },
+  {
+    "frame": 2640,
+    "seconds": 44.0,
+    "bus": "music",
+    "label": "Clarity bar 4",
+    "gain": 0.19,
+    "pan": 0
+  },
+  {
+    "frame": 2652,
+    "seconds": 44.2,
+    "bus": "ui",
+    "label": "open-document",
+    "gain": 0.34,
+    "pan": 0.0
+  },
+  {
+    "frame": 2682,
+    "seconds": 44.7,
+    "bus": "motion",
+    "label": "document-and-basis",
+    "gain": 0.105,
+    "pan": 0
+  },
+  {
+    "frame": 2760,
+    "seconds": 46.0,
+    "bus": "music",
+    "label": "Clarity bar 5",
+    "gain": 0.19,
+    "pan": 0
+  },
+  {
+    "frame": 2832,
+    "seconds": 47.2,
+    "bus": "impacts",
+    "label": "decision-ready",
+    "gain": 0.072,
+    "pan": 0.0
+  },
+  {
+    "frame": 2880,
+    "seconds": 48.0,
+    "bus": "music",
+    "label": "Clarity bar 6",
+    "gain": 0.19,
+    "pan": 0
+  },
+  {
+    "frame": 2952,
+    "seconds": 49.2,
+    "bus": "motion",
+    "label": "Lead-in to economic meaning",
+    "gain": 0.12,
+    "pan": 0
+  },
+  {
+    "frame": 2952,
+    "seconds": 49.2,
+    "bus": "motion",
+    "label": "benefit-match-cut",
+    "gain": 0.145,
+    "pan": 0
+  },
+  {
+    "frame": 3000,
+    "seconds": 50.0,
+    "bus": "impacts",
+    "label": "Meaning resolves at 50 seconds",
+    "gain": 0.4,
+    "pan": 0
+  },
+  {
+    "frame": 3000,
+    "seconds": 50.0,
+    "bus": "impacts",
+    "label": "Timeline marker (score provides impact): expected-value"
+  },
+  {
+    "frame": 3030,
+    "seconds": 50.5,
+    "bus": "motion",
+    "label": "less-retyping",
+    "gain": 0.105,
+    "pan": 0
+  },
+  {
+    "frame": 3090,
+    "seconds": 51.5,
+    "bus": "motion",
+    "label": "less-search",
+    "gain": 0.105,
+    "pan": 0
+  },
+  {
+    "frame": 3150,
+    "seconds": 52.5,
+    "bus": "motion",
+    "label": "clear-route",
+    "gain": 0.105,
+    "pan": 0
+  },
+  {
+    "frame": 3240,
+    "seconds": 54.0,
+    "bus": "motion",
+    "label": "Brand convergence anticipation to frame 3312",
+    "gain": 0.15,
+    "pan": 0
+  },
+  {
+    "frame": 3240,
+    "seconds": 54.0,
+    "bus": "motion",
+    "label": "brand-convergence",
+    "gain": 0.145,
+    "pan": 0
+  },
+  {
+    "frame": 3240,
+    "seconds": 54.0,
+    "bus": "music",
+    "label": "Short suspended chord during brand convergence",
+    "gain": 0.13,
+    "pan": 0
+  },
+  {
+    "frame": 3312,
+    "seconds": 55.2,
+    "bus": "impacts",
+    "label": "Brand arrives at frame 3312: warm low impact",
+    "gain": 0.3,
+    "pan": 0
+  },
+  {
+    "frame": 3312,
+    "seconds": 55.2,
+    "bus": "impacts",
+    "label": "Timeline marker (score provides impact): brand-lockup"
+  },
+  {
+    "frame": 3312,
+    "seconds": 55.2,
+    "bus": "music",
+    "label": "Dm(add9) final resolution",
+    "gain": 0.32,
+    "pan": 0
+  },
+  {
+    "frame": 3390,
+    "seconds": 56.5,
+    "bus": "motion",
+    "label": "last-thought",
+    "gain": 0.105,
+    "pan": 0
+  },
+  {
+    "frame": 3480,
+    "seconds": 58.0,
+    "bus": "music",
+    "label": "Resolution held; musical and reverberant tail to 60"
+  }
+]
