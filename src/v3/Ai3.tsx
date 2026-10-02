@@ -359,7 +359,7 @@ export const Ai3: React.FC = () => {
         <AbsoluteFill style={{ opacity: 1 - tw(s, [AI.modules - 0.3, AI.modules + 0.2], [0, 1]) }}>
           <div style={{ position: "absolute", left: 0, right: 0, top: 150, display: "flex", flexDirection: "column", alignItems: "center", gap: 18 }}>
             <Eyebrow n="ИИ" label="Сопоставление номенклатуры" at={AI.nom + 0.1} />
-            <Rise text="Одна позиция вместо трёх написаний" at={AI.nom + 0.2} size={64} weight={800} highlight={["Одна", "позиция"]} center />
+            <Rise text="Три названия — одна позиция" at={AI.nom + 0.2} size={64} weight={800} highlight={["одна", "позиция"]} center />
           </div>
           {[
             ["УПД № 418", "Радиатор биметалл. 10 с.", "100"],

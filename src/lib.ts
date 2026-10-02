@@ -13,15 +13,24 @@ export const OUT = Easing.bezier(0.23, 1, 0.32, 1);
 export const IN = Easing.bezier(0.55, 0, 1, 0.45);
 
 /** Scenes keep their own authored clock; the film places them by shifting time. */
-const Shift = createContext(0);
-export const TimeShift: React.FC<{ by: number; children: React.ReactNode }> = ({ by, children }) =>
-  React.createElement(Shift.Provider, { value: by }, children);
+/** A hold: at authored time `at` the scene slows down — `film` seconds of film advance the
+    authored clock by only `adv` seconds — giving the viewer time to read without a freeze. */
+export type Hold = { at: number; film: number; adv: number };
+const Shift = createContext<{ by: number; holds: Hold[] }>({ by: 0, holds: [] });
+export const TimeShift: React.FC<{ by: number; holds?: Hold[]; children: React.ReactNode }> = ({ by, holds = [], children }) =>
+  React.createElement(Shift.Provider, { value: { by, holds } }, children);
 
 /** Current time in seconds on the scene's authored clock. */
 export const useSec = () => {
   const frame = useCurrentFrame();
-  const shift = useContext(Shift);
-  return frame / FPS - shift;
+  const { by, holds } = useContext(Shift);
+  let t = frame / FPS - by;
+  for (const h of holds) {
+    if (t <= h.at) break;
+    if (t < h.at + h.film) return h.at + ((t - h.at) / h.film) * h.adv;
+    t = t - h.film + h.adv;
+  }
+  return t;
 };
 
 /** Clamped interpolation over seconds. */

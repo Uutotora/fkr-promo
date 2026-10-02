@@ -91,9 +91,10 @@ export const Effects3: React.FC = () => {
 
   // total: big in beat 0, docks above the rail, returns for the summary
   const tot = tw(s, [e0 + 0.2, e0 + 2.0], [0, 1.05], OUT);
-  const dock = tw(s, [e1 - 0.6, e1], [0, 1], INOUT) * (1 - tw(s, [E3.sum, E3.sum + 0.8], [0, 1], INOUT));
-  const totY = 470 + (124 - 470) * dock;
-  const totS = 1 - 0.62 * dock;
+  const dockIn = tw(s, [e1 - 0.6, e1], [0, 1], INOUT);
+  const back = tw(s, [E3.sum, E3.sum + 0.8], [0, 1], INOUT);
+  const totY = 470 + (124 - 470) * dockIn + (380 - 124) * back;
+  const totS = 1 - 0.62 * dockIn + 0.62 * back;
 
   // 100% grid (beat 5) — also the source of the six logo windows
   const GC = 40;
@@ -284,19 +285,23 @@ export const Effects3: React.FC = () => {
       {RAIL.map((r, i) => {
         const p = pop(s, RAIL_AT[i], 0.5);
         if (s < RAIL_AT[i]) return null;
-        const sumK = tw(s, [E3.sum, E3.sum + 0.9], [0, 1], INOUT);
+        const sumK = tw(s, [E3.sum + i * 0.04, E3.sum + 0.9 + i * 0.04], [0, 1], INOUT);
         const base = slot(i);
-        const y = base.y + (720 - base.y) * sumK;
+        // summary: a calm 3 × 2 grid with air between the cards
+        const gx = 960 + ((i % 3) - 1) * (380 + 28);
+        const gy = 690 + Math.floor(i / 3) * (124 + 26);
+        const x = base.x + (gx - base.x) * sumK;
+        const y = base.y + (gy - base.y) * sumK;
+        const w = RW + (380 - RW) * sumK;
+        const h = 92 + (124 - 92) * sumK;
         return (
-          <div key={r.v} style={{ position: "absolute", left: base.x, top: y, translate: "-50% -50%", width: RW, height: 92, borderRadius: 20, background: "#fff", boxShadow: `0 20px 40px -24px rgba(0,2,48,0.35), 0 0 ${30 * Math.max(0, 1 - (s - RAIL_AT[i]) / 1.2)}px rgba(49,107,253,0.6)`, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", scale: String(Math.max(0, p) * (1 + sumK * 0.08)), opacity: 1 - railOut }}>
-            <div style={{ fontSize: 30, fontWeight: 800, letterSpacing: "-0.03em", color: i === 5 ? C.blue : C.orange }}>{r.v}</div>
-            <div style={{ fontSize: 16, color: C.muted, fontWeight: 600, marginTop: 2 }}>{r.l}</div>
+          <div key={r.v} style={{ position: "absolute", left: x, top: y, translate: "-50% -50%", width: w, height: h, borderRadius: 20, background: "#fff", boxShadow: `0 20px 40px -24px rgba(0,2,48,0.35), 0 0 ${30 * Math.max(0, 1 - (s - RAIL_AT[i]) / 1.2)}px rgba(49,107,253,0.6)`, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", scale: String(Math.max(0, p)), opacity: 1 - railOut }}>
+            <div style={{ fontSize: 30 + 8 * sumK, fontWeight: 800, letterSpacing: "-0.03em", color: i === 5 ? C.blue : C.orange }}>{r.v}</div>
+            <div style={{ fontSize: 16 + 3 * sumK, color: C.muted, fontWeight: 600, marginTop: 2 + 4 * sumK }}>{r.l}</div>
           </div>
         );
       })}
-      <div style={{ position: "absolute", left: 0, right: 0, top: 1010, textAlign: "center", fontSize: 18, color: C.faint, opacity: tw(s, [e0 + 1.5, e0 + 2], [0, 1]) * (1 - railOut) }}>
-        Оценка по дорожной карте единой системы ФКР: 8 млрд ₽ на материалы и 450 млн ₽ на доставку в год
-      </div>
+
     </AbsoluteFill>
   );
 };

@@ -45,9 +45,6 @@ export const S10Close: React.FC = () => {
           </Fade>
         </div>
       </AbsoluteFill>
-      <div style={{ position: "absolute", left: 0, right: 0, bottom: 64, display: "flex", justifyContent: "center", opacity: tw(s, [72.4, 73.2], [0, 1], EXPO) }}>
-        <div style={{ fontSize: 19, fontWeight: 600, letterSpacing: "0.16em", color: C.faint }}>ПРОТОТИП · 2026</div>
-      </div>
     </AbsoluteFill>
   );
 };

@@ -2,7 +2,7 @@ import React from "react";
 import { AbsoluteFill, staticFile, useCurrentFrame } from "remotion";
 import { Audio } from "@remotion/media";
 import "../fonts";
-import { FPS, TimeShift, tw } from "../lib";
+import { FPS, TimeShift, tw, type Hold } from "../lib";
 import { Moscow } from "./Moscow";
 import { Hook } from "../v2/Hook";
 import { Now3, NOW3 } from "./Now3";
@@ -20,9 +20,9 @@ import { S8Sign } from "../scenes/S8Sign";
 import { S10Close } from "../scenes/S10Close";
 import { Grain } from "../components/Backdrop";
 
-export const FILM3_DURATION = 146;
+export const FILM3_DURATION = 148.5;
 
-type Item = { at: [number, number]; shift?: number; C: React.FC; fadeIn?: number };
+type Item = { at: [number, number]; shift?: number; holds?: Hold[]; C: React.FC; fadeIn?: number };
 
 const ITEMS: Item[] = [
   { at: [0, 39.45], C: Moscow },
@@ -32,30 +32,30 @@ const ITEMS: Item[] = [
   { at: [33, 39.4], shift: 9, C: Dawn },
   { at: [49, 57.05], shift: 19, C: S5Objects },
   { at: [57, 65.3], shift: 19, C: S6Object },
-  { at: [65.2, 75.3], shift: 19, C: S7Tmc },
-  { at: [74.7, 94.5], shift: 9, C: Ai3 },
-  { at: [94, 106.4], C: Market4 },
-  { at: [106.25, 112.3], shift: 50, C: S8Sign },
-  { at: [112, 138.5], C: Effects3 },
-  { at: [138.42, 146], shift: 70, C: S10Close },
+  { at: [65.2, 76.3], shift: 19, holds: [{ at: 47.15, film: 1.2, adv: 0.2 }], C: S7Tmc },
+  { at: [75.7, 95.5], shift: 10, C: Ai3 },
+  { at: [95, 108.9], shift: 1, holds: [{ at: 95.2, film: 1.7, adv: 0.2 }], C: Market4 },
+  { at: [108.75, 114.8], shift: 52.5, C: S8Sign },
+  { at: [114.5, 141], shift: 2.5, C: Effects3 },
+  { at: [140.92, 148.5], shift: 72.5, C: S10Close },
 ];
 
 const SWEEPS = [
   ...NOW3.p.slice(1).map((t) => ({ t: t - 0.15, dark: true })),
   { t: 64.75 },
-  { t: 93.95 },
-  { t: 106.0, dir: -1 as const },
+  { t: 94.95 },
+  { t: 108.5, dir: -1 as const },
 ];
 
 export const Film3: React.FC<{ withAudio?: boolean }> = ({ withAudio = true }) => {
   const s = useCurrentFrame() / FPS;
   return (
     <AbsoluteFill style={{ background: "#010210" }}>
-      {ITEMS.map(({ at: [a, b], shift = 0, C, fadeIn }, i) => {
+      {ITEMS.map(({ at: [a, b], shift = 0, holds, C, fadeIn }, i) => {
         if (s < a || s >= b) return null;
         return (
           <AbsoluteFill key={i} style={{ opacity: fadeIn ? tw(s, [a, a + fadeIn], [0, 1]) : 1 }}>
-            <TimeShift by={shift}>
+            <TimeShift by={shift} holds={holds}>
               <C />
             </TimeShift>
           </AbsoluteFill>
@@ -64,7 +64,7 @@ export const Film3: React.FC<{ withAudio?: boolean }> = ({ withAudio = true }) =
       <Sweeps at={SWEEPS} />
       <Hud3 />
       <Grain opacity={0.035} />
-      {withAudio ? <Audio src={staticFile("audio/v3/soundtrack.wav")} /> : null}
+      {withAudio ? <Audio src={staticFile("audio/v4/soundtrack.wav")} /> : null}
     </AbsoluteFill>
   );
 };

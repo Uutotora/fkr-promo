@@ -82,52 +82,100 @@ const Systems: React.FC<{ t: number }> = ({ t }) => {
 };
 
 /* ---------- 02 · one request, three versions, checked by hand ---------- */
+const PencilCheck: React.FC<{ k: number }> = ({ k }) => (
+  <svg width={34} height={34} viewBox="0 0 34 34">
+    <rect x={2} y={2} width={30} height={30} rx={9} fill={k > 0.98 ? "rgba(76,123,255,0.25)" : "transparent"} stroke="rgba(255,255,255,0.4)" strokeWidth={2} />
+    <path d="M9 17.5l5.5 5.5L25.5 11" fill="none" stroke="#9DB6FF" strokeWidth={3.4} strokeLinecap="round" strokeLinejoin="round" pathLength={1} strokeDasharray={1} strokeDashoffset={1 - k} style={{ filter: k > 0 ? "drop-shadow(0 0 6px rgba(120,160,255,0.9))" : undefined }} />
+  </svg>
+);
+
 const Requests: React.FC<{ t: number }> = ({ t }) => {
   const s = useSec();
-  const k = appear(s, t + 0.15);
-  const ver = Math.min(2, Math.floor(tw(s, [t + 0.9, t + 2.5], [0, 2.99], (x) => x)));
-  const qty = ["42", "36", "31"][ver];
+  const VERS = [
+    { v: "v1", q: "42", was: "" },
+    { v: "v2", q: "36", was: "42" },
+    { v: "v3", q: "31", was: "36" },
+  ];
+  const arrive = [t + 0.2, t + 1.35, t + 2.5];
   const checks = ["Сверить с уточнённой потребностью", "Сверить с остатками на объекте", "Сверить с проектными объёмами"];
+  const checkAt = [t + 1.0, t + 2.1, t + 3.2];
+  const latest = arrive.filter((a) => s >= a).length - 1;
+  const panel = appear(s, t + 0.6);
   return (
-    <div style={{ position: "absolute", left: -420, top: -280, width: 840, opacity: k, translate: `0 ${(1 - k) * 40}px` }}>
-      <div style={{ ...glass, padding: 0, overflow: "hidden" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "18px 24px", background: "rgba(255,255,255,0.05)" }}>
-          <div style={{ fontSize: 22, fontWeight: 800, flex: 1 }}>Заявка З-2026-0188 · утеплитель</div>
-          {["v1", "v2", "v3"].map((v, i) => (
-            <div key={v} style={{ padding: "8px 16px", borderRadius: 10, fontSize: 18, fontWeight: 800, background: i === ver ? C.orange : "rgba(255,255,255,0.08)", color: i === ver ? "#1d0b00" : i < ver ? "rgba(255,255,255,0.35)" : muted, textDecoration: i < ver ? "line-through" : undefined }}>
-              {v}
-            </div>
-          ))}
-        </div>
-        <div style={{ display: "flex", gap: 36, padding: "26px 28px" }}>
-          {[
-            ["Количество", <span key="q" style={{ fontVariantNumeric: "tabular-nums" }}>{qty} м³</span>],
-            ["Потребность", "уточняется"],
-            ["Основание", "предварительный объём"],
-          ].map(([l, v], i) => (
-            <div key={l as string}>
-              <div style={{ fontSize: 17, color: muted }}>{l}</div>
-              <div style={{ fontSize: i === 0 ? 46 : 24, fontWeight: 800, marginTop: 6, color: i === 0 ? "#fff" : "rgba(255,255,255,0.85)" }}>{v}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div style={{ ...glass, marginTop: 22, padding: "18px 24px" }}>
-        {checks.map((c, i) => {
-          const at = t + 1.3 + i * 0.75;
-          const done = s > at + 0.5;
-          const pk = tw(s, [at, at + 0.5], [0, 1]);
+    <div style={{ position: "absolute", left: -420, top: -310, width: 840 }}>
+      <div style={{ position: "relative", height: 250 }}>
+        {VERS.map((ver, i) => {
+          const k = tw(s, [arrive[i], arrive[i] + 0.65], [0, 1], EXPO);
+          if (k <= 0) return null;
+          // how many newer versions sit on top of this one
+          const depth = arrive.reduce((d, a, j) => d + (j > i ? tw(s, [a, a + 0.6], [0, 1], INOUT) : 0), 0);
+          const stamp = i < 2 ? pop(s, arrive[i + 1] + 0.25, 0.45) : 0;
+          const roll = tw(s, [arrive[i] + 0.15, arrive[i] + 0.8], [0, 1], OUT);
           return (
-            <div key={c} style={{ display: "flex", alignItems: "center", gap: 14, height: 54, fontSize: 22, fontWeight: 600, color: done ? "#fff" : muted }}>
-              <div style={{ width: 30, height: 30, borderRadius: 8, boxShadow: "inset 0 0 0 2px rgba(255,255,255,0.4)", background: done ? "#4C7BFF" : "transparent", display: "grid", placeItems: "center" }}>{done && <ICheck size={18} color="#fff" stroke={3} />}</div>
-              {c}
-              {pk > 0 && pk < 1 && <IPencil size={22} color={C.orange} style={{ marginLeft: 8, translate: `${Math.sin(s * 30) * 3}px 0` }} />}
-              {done && <span style={{ marginLeft: "auto", fontSize: 17, color: C.orange, fontWeight: 700 }}>вручную</span>}
+            <div
+              key={ver.v}
+              style={{
+                position: "absolute",
+                left: 60 - depth * 30,
+                top: 30 - depth * 26,
+                width: 640,
+                ...glass,
+                background: "linear-gradient(165deg, #283192, #11154a)",
+                padding: 0,
+                overflow: "hidden",
+                opacity: Math.min(1, k * 1.4) * (1 - depth * 0.32),
+                translate: `${(1 - k) * 160}px 0`,
+                scale: String(1 - depth * 0.05),
+                filter: (1 - k) + depth > 0.01 ? `blur(${(1 - k) * 8 + depth * 1.2}px)` : undefined,
+                zIndex: i,
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "16px 22px", background: "rgba(255,255,255,0.05)" }}>
+                <div style={{ fontSize: 21, fontWeight: 800, flex: 1 }}>Заявка З-2026-0188 · утеплитель</div>
+                <div style={{ padding: "7px 14px", borderRadius: 10, fontSize: 18, fontWeight: 900, background: i === latest ? C.orange : "rgba(255,255,255,0.1)", color: i === latest ? "#1d0b00" : muted, boxShadow: i === latest ? "0 0 24px rgba(253,132,49,0.55)" : "none" }}>{ver.v}</div>
+              </div>
+              <div style={{ display: "flex", alignItems: "flex-end", gap: 28, padding: "20px 24px 24px" }}>
+                <div>
+                  <div style={{ fontSize: 17, color: muted }}>Количество</div>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 14, marginTop: 4 }}>
+                    <span style={{ fontSize: 58, fontWeight: 900, letterSpacing: "-0.03em", fontVariantNumeric: "tabular-nums", display: "inline-block", translate: `0 ${(1 - roll) * 30}px`, opacity: roll, color: "#fff", textShadow: i > 0 ? "0 0 26px rgba(253,132,49,0.45)" : undefined }}>
+                      {ver.q} м³
+                    </span>
+                    {ver.was && (
+                      <span style={{ position: "relative", fontSize: 26, fontWeight: 800, color: "#ff8a98", opacity: roll }}>
+                        было {ver.was}
+                        <span style={{ position: "absolute", left: 0, top: "52%", height: 3, borderRadius: 2, width: `${tw(s, [arrive[i] + 0.5, arrive[i] + 0.9], [0, 100], INOUT)}%`, background: "#ff8a98" }} />
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div style={{ marginLeft: "auto", textAlign: "right" }}>
+                  <div style={{ fontSize: 17, color: muted }}>Основание</div>
+                  <div style={{ fontSize: 22, fontWeight: 750, marginTop: 6 }}>предварительный объём</div>
+                </div>
+              </div>
+              {stamp > 0 && (
+                <div style={{ position: "absolute", right: 24, top: 70, rotate: "-8deg", scale: String(Math.max(0, stamp)), padding: "8px 16px", borderRadius: 10, boxShadow: "inset 0 0 0 3px #ff5a6e", color: "#ff5a6e", fontSize: 22, fontWeight: 900, letterSpacing: "0.05em", background: "rgba(20,8,24,0.75)" }}>ПЕРЕСОЗДАНА</div>
+              )}
             </div>
           );
         })}
       </div>
-      <Tag at={t + 3.4} style={{ left: 220, top: 520 }}>3 версии одной заявки</Tag>
+      <div style={{ ...glass, marginTop: 34, padding: "16px 24px", opacity: panel, translate: `0 ${(1 - panel) * 30}px` }}>
+        {checks.map((c, i) => {
+          const k = tw(s, [checkAt[i], checkAt[i] + 0.55], [0, 1], INOUT);
+          const writing = k > 0 && k < 1;
+          return (
+            <div key={c} style={{ display: "flex", alignItems: "center", gap: 16, height: 58, fontSize: 22, fontWeight: 650, color: k > 0.98 ? "#fff" : muted }}>
+              <PencilCheck k={k} />
+              {c}
+              {writing && <IPencil size={24} color={C.orange} style={{ translate: `${Math.sin(s * 34) * 3}px ${Math.cos(s * 27) * 2}px` }} />}
+              <span style={{ marginLeft: "auto", fontSize: 17, fontWeight: 800, color: C.orange, opacity: tw(s, [checkAt[i] + 0.5, checkAt[i] + 0.8], [0, 1]) }}>вручную</span>
+            </div>
+          );
+        })}
+      </div>
+      <Tag at={t + 3.6} style={{ left: 250, top: 560 }}>3 версии одной заявки</Tag>
     </div>
   );
 };
@@ -266,48 +314,81 @@ const Trips: React.FC<{ t: number }> = ({ t }) => {
 };
 
 /* ---------- 04 · statuses go round in a circle ---------- */
+const StatusIcon: React.FC<{ kind: number; color: string }> = ({ kind, color }) => (
+  <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round">
+    {kind === 0 && <path d="M21 21l-4.3-4.3M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14z" />}
+    {kind === 1 && <path d="M9 14L4 9l5-5M4 9h11a5 5 0 0 1 0 10h-3" />}
+    {kind === 2 && <path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z" />}
+    {kind === 3 && <path d="M17 2l4 4-4 4M3 11V9a4 4 0 0 1 4-4h14M7 22l-4-4 4-4M21 13v2a4 4 0 0 1-4 4H3" />}
+  </svg>
+);
+
 const Loop: React.FC<{ t: number }> = ({ t }) => {
   const s = useSec();
   const k = appear(s, t + 0.1);
-  const R = 210;
-  const nodes = [
-    { l: "На проверке", a: -90 },
-    { l: "Возвращена\nна доработку", a: 0 },
-    { l: "Исправлена", a: 90 },
-    { l: "Повторная\nпроверка", a: 180 },
+  const R = 220;
+  const NODES = [
+    { l: "На проверке", a: -90, c: "#8EA8FF" },
+    { l: "Возвращена\nна доработку", a: 0, c: "#FFC56B" },
+    { l: "Исправлена", a: 90, c: "#6FE0B0" },
+    { l: "Повторная\nпроверка", a: 180, c: "#8EA8FF" },
   ];
-  const turn = tw(s, [t + 0.5, t + 3.0], [0, 1.75], INOUT);
+  const turn = tw(s, [t + 0.5, t + 3.05], [0, 1.75], INOUT);
   const ang = -90 + turn * 360;
-  const exit = tw(s, [t + 3.05, t + 3.4], [0, 1], IN);
-  const dx = Math.cos((ang * Math.PI) / 180) * R * (1 + exit * 0.0);
-  const dy = Math.sin((ang * Math.PI) / 180) * R;
+  const fail = tw(s, [t + 3.05, t + 3.4], [0, 1], EXPO);
+  const stamp = tw(s, [t + 3.25, t + 3.5], [0, 1], (x) => x * x);
+  const shock = tw(s, [t + 3.45, t + 4.3], [0, 1], OUT);
   const day = Math.round(tw(s, [t + 0.5, t + 3.1], [1, 14], (x) => x));
-  const stamp = tw(s, [t + 3.2, t + 3.45], [0, 1], (x) => x * x);
-  const active = Math.floor((((ang + 90 + 45) % 360) + 360) % 360 / 90);
+  const lap = Math.min(2, Math.floor(turn) + 1);
+  const pos = (deg: number, r = R) => ({ x: Math.cos((deg * Math.PI) / 180) * r, y: Math.sin((deg * Math.PI) / 180) * r });
+  const ringCol = fail > 0 ? `rgba(255,90,110,${0.5 + 0.4 * fail})` : C.orange;
   return (
-    <div style={{ position: "absolute", left: 0, top: 0, opacity: k, scale: String(0.94 + 0.06 * k) }}>
-      <svg width={600} height={600} viewBox="-300 -300 600 600" style={{ position: "absolute", left: -300, top: -300, overflow: "visible" }}>
-        <circle r={R} fill="none" stroke="rgba(255,255,255,0.14)" strokeWidth={10} />
-        <circle r={R} fill="none" stroke={C.orange} strokeWidth={10} strokeDasharray={`${turn * 2 * Math.PI * R} 99999`} transform="rotate(-90)" strokeLinecap="round" opacity={0.85} />
-        <circle cx={dx} cy={dy} r={14} fill="#fff" style={{ filter: "drop-shadow(0 0 14px rgba(255,255,255,0.9))" }} opacity={1 - stamp} />
+    <div style={{ position: "absolute", left: 0, top: -10, opacity: k, scale: String(0.94 + 0.06 * k) }}>
+      <svg width={700} height={700} viewBox="-350 -350 700 700" style={{ position: "absolute", left: -350, top: -350, overflow: "visible" }}>
+        <defs>
+          <filter id="cometGlow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="6" result="b" />
+            <feMerge>
+              <feMergeNode in="b" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+        <circle r={R} fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth={12} />
+        <circle r={R} fill="none" stroke={ringCol} strokeWidth={6} strokeDasharray={`${Math.min(1, turn) * 2 * Math.PI * R} 99999`} transform="rotate(-90)" strokeLinecap="round" opacity={0.35 + 0.4 * fail} />
+        {/* comet tail */}
+        <g filter="url(#cometGlow)" opacity={1 - fail}>
+          {Array.from({ length: 26 }, (_, i) => {
+            const p = pos(ang - i * 3.2);
+            return <circle key={i} cx={p.x} cy={p.y} r={10 - i * 0.33} fill={i === 0 ? "#fff" : C.orange} opacity={i === 0 ? 1 : (1 - i / 26) * 0.75} />;
+          })}
+        </g>
+        {/* inner day ring */}
+        <circle r={128} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={6} />
+        <circle r={128} fill="none" stroke={fail > 0 ? "#ff5a6e" : "#8EA8FF"} strokeWidth={6} strokeDasharray={`${(day / 14) * 2 * Math.PI * 128} 9999`} transform="rotate(-90)" strokeLinecap="round" />
+        {shock > 0 && shock < 1 && <circle r={60 + shock * 420} fill="none" stroke={`rgba(255,90,110,${0.7 * (1 - shock)})`} strokeWidth={3} filter="url(#cometGlow)" />}
       </svg>
-      {nodes.map((n, i) => {
-        const x = Math.cos((n.a * Math.PI) / 180) * (R + 0);
-        const y = Math.sin((n.a * Math.PI) / 180) * (R + 0);
-        const on = s > t + 0.5 && active === i && stamp === 0;
+      {NODES.map((n, i) => {
+        const p = pos(n.a);
+        let d = (((ang - n.a) % 360) + 360) % 360;
+        const near = turn > 0.02 && d < 40 && fail === 0 ? 1 - d / 40 : 0;
         return (
-          <div key={i} style={{ position: "absolute", left: x, top: y, translate: "-50% -50%", ...glass, padding: "12px 18px", fontSize: 19, fontWeight: 750, whiteSpace: "pre", textAlign: "center", lineHeight: 1.2, boxShadow: on ? `0 0 0 2px ${C.orange}, 0 0 40px rgba(253,132,49,0.45)` : glass.boxShadow }}>
-            {n.l}
+          <div key={i} style={{ position: "absolute", left: p.x, top: p.y, translate: "-50% -50%", display: "flex", alignItems: "center", gap: 10, padding: "11px 16px 11px 12px", borderRadius: 16, background: "linear-gradient(165deg, rgba(40,48,120,0.95), rgba(14,17,56,0.97))", boxShadow: `0 0 0 ${1 + near * 1.5}px ${near > 0 ? n.c : "rgba(255,255,255,0.1)"}, 0 0 ${40 * near}px ${n.c}, 0 20px 40px -20px rgba(0,0,0,0.7)`, scale: String(1 + near * 0.08), color: "#fff", fontFamily: FONT }}>
+            <span style={{ width: 34, height: 34, borderRadius: 99, display: "grid", placeItems: "center", background: "rgba(255,255,255,0.08)" }}>
+              <StatusIcon kind={i} color={n.c} />
+            </span>
+            <span style={{ fontSize: 18, fontWeight: 800, whiteSpace: "pre", lineHeight: 1.15 }}>{n.l}</span>
           </div>
         );
       })}
-      <div style={{ position: "absolute", left: 0, top: 0, translate: "-50% -50%", textAlign: "center", color: "#fff", opacity: 1 - stamp * 0.7, whiteSpace: "nowrap" }}>
-        <div style={{ fontSize: 20, color: muted, fontWeight: 600 }}>на согласовании</div>
-        <div style={{ fontSize: 110, fontWeight: 900, lineHeight: 1.05, fontVariantNumeric: "tabular-nums", color: "#fff", textShadow: "0 0 40px rgba(253,132,49,0.55)" }}>{day}</div>
-        <div style={{ fontSize: 22, color: muted, fontWeight: 600 }}>дней</div>
+      <div style={{ position: "absolute", left: 0, top: 0, translate: "-50% -50%", textAlign: "center", color: "#fff", whiteSpace: "nowrap", opacity: 1 - stamp * 0.85, fontFamily: FONT }}>
+        <div style={{ fontSize: 18, color: muted, fontWeight: 650 }}>на согласовании</div>
+        <div style={{ fontSize: 104, fontWeight: 900, lineHeight: 1.02, fontVariantNumeric: "tabular-nums", textShadow: `0 0 40px ${fail > 0 ? "rgba(255,90,110,0.6)" : "rgba(140,170,255,0.55)"}` }}>{day}</div>
+        <div style={{ fontSize: 20, color: muted, fontWeight: 650 }}>дней</div>
+        <div style={{ marginTop: 10, display: "inline-block", padding: "5px 12px", borderRadius: 99, background: lap > 1 ? "rgba(253,132,49,0.2)" : "rgba(255,255,255,0.08)", color: lap > 1 ? C.orange : muted, fontSize: 16, fontWeight: 800 }}>круг {lap}</div>
       </div>
       {stamp > 0 && (
-        <div style={{ position: "absolute", left: 0, top: 0, translate: "-50% -50%", rotate: `${-10 + (1 - stamp) * -10}deg`, scale: String(2.2 - 1.2 * stamp), opacity: stamp, padding: "16px 30px", borderRadius: 16, boxShadow: "inset 0 0 0 5px #ff5a6e", color: "#ff5a6e", fontSize: 46, fontWeight: 900, letterSpacing: "0.04em", background: "rgba(20,8,20,0.85)" }}>
+        <div style={{ position: "absolute", left: 0, top: 0, translate: "-50% -50%", rotate: `${-10 + (1 - stamp) * -12}deg`, scale: String(2.3 - 1.3 * stamp), opacity: stamp, padding: "16px 30px", borderRadius: 16, boxShadow: "inset 0 0 0 5px #ff5a6e, 0 0 50px rgba(255,90,110,0.45)", color: "#ff5a6e", fontSize: 46, fontWeight: 900, letterSpacing: "0.04em", background: "rgba(20,8,24,0.92)", fontFamily: FONT }}>
           АННУЛИРОВАНА
         </div>
       )}

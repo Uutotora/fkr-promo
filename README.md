@@ -2,10 +2,10 @@
 
 Промо-ролик для прототипа единой системы ФКР Москвы. Сделан кодом на [Remotion](https://www.remotion.dev/): каждый экран интерфейса перерисован как анимированный React-компонент, без скриншотов. Звук синтезирован под монтаж на Python.
 
-**Текущая версия:** 2:26, 1920×1080, 60 fps — композиция `Promo` (`src/v3/Film3.tsx`).
+**Текущая версия:** 2:28, 1920×1080, 60 fps — композиция `Promo` (`src/v3/Film3.tsx`).
 
-- Смотреть сразу: [`preview/fkr-promo-v4-preview.mp4`](preview/fkr-promo-v4-preview.mp4) — сжатое превью
-- Полное качество всех версий и саундтрек: [Releases → v4](https://github.com/Uutotora/fkr-promo/releases/tag/v4)
+- Смотреть сразу: [`preview/fkr-promo-v5-preview.mp4`](preview/fkr-promo-v5-preview.mp4) — сжатое превью
+- Полное качество всех версий и саундтрек: [Releases → v5](https://github.com/Uutotora/fkr-promo/releases/tag/v5)
 
 ## Сюжет
 
@@ -34,10 +34,10 @@ npx remotion render Promo out/fkr-promo.mp4 --codec h264 --crf 16
 
 ```sh
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-.venv/bin/python audio/build_v3.py   # → public/audio/v3/soundtrack.wav
+.venv/bin/python audio/build_v4.py   # → public/audio/v4/soundtrack.wav
 ```
 
-Синтез описан в `audio/design.py` (удары, вжухи, райзеры, UI-звуки), партитура — в `audio/build_v3.py`. Звуки интерфейса — Kenney (CC0), лежат в `sfxsrc/`. Лицензионные звуки можно положить в `sfx_user/`, список слотов — в `sfx_user/README.md`.
+Синтез описан в `audio/design.py` (удары, вжухи, райзеры, UI-звуки), партитура — в `audio/build_v4.py`. Звуки интерфейса — Kenney (CC0), лежат в `sfxsrc/`. Лицензионные звуки можно положить в `sfx_user/`, список слотов — в `sfx_user/README.md`.
 
 ## Структура
 
