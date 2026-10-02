@@ -231,28 +231,40 @@ export const AppWindow: React.FC<{
 
 export type Pose = { x: number; y: number; s: number; rx: number; ry: number; rz?: number; o?: number; blur?: number };
 
-/** Interpolate poses over keyframes. x/y = screen position of the window centre. */
-export const poseAt = (sec: number, keys: [number, Pose][], easing = (t: number) => t) => {
-  if (sec <= keys[0][0]) return keys[0][1];
-  for (let i = 0; i < keys.length - 1; i++) {
-    const [t0, a] = keys[i];
-    const [t1, b] = keys[i + 1];
-    if (sec <= t1) {
-      const k = easing((sec - t0) / (t1 - t0));
-      const m = (p: number, q: number) => p + (q - p) * k;
-      return {
-        x: m(a.x, b.x),
-        y: m(a.y, b.y),
-        s: m(a.s, b.s),
-        rx: m(a.rx, b.rx),
-        ry: m(a.ry, b.ry),
-        rz: m(a.rz ?? 0, b.rz ?? 0),
-        o: m(a.o ?? 1, b.o ?? 1),
-        blur: m(a.blur ?? 0, b.blur ?? 0),
-      } as Pose;
+/** Interpolate poses over keyframes with a monotone cubic spline: the camera never stops
+    between keys (no jerks on the joins) and never overshoots. x/y = window centre on screen. */
+const PROPS = ["x", "y", "s", "rx", "ry", "rz", "o", "blur"] as const;
+const DEF: Record<(typeof PROPS)[number], number> = { x: 0, y: 0, s: 1, rx: 0, ry: 0, rz: 0, o: 1, blur: 0 };
+const mono = (ts: number[], vs: number[], t: number) => {
+  const n = ts.length;
+  if (t <= ts[0]) return vs[0];
+  if (t >= ts[n - 1]) return vs[n - 1];
+  const d: number[] = [];
+  for (let i = 0; i < n - 1; i++) d.push((vs[i + 1] - vs[i]) / (ts[i + 1] - ts[i]));
+  const m: number[] = new Array(n).fill(0);
+  for (let i = 1; i < n - 1; i++) {
+    if (d[i - 1] * d[i] <= 0) m[i] = 0;
+    else {
+      const w1 = 2 * (ts[i + 1] - ts[i]) + (ts[i] - ts[i - 1]);
+      const w2 = (ts[i + 1] - ts[i]) + 2 * (ts[i] - ts[i - 1]);
+      m[i] = (w1 + w2) / (w1 / d[i - 1] + w2 / d[i]);
     }
   }
-  return keys[keys.length - 1][1];
+  let i = 0;
+  while (t > ts[i + 1]) i++;
+  const h = ts[i + 1] - ts[i];
+  const u = (t - ts[i]) / h;
+  const h00 = 2 * u ** 3 - 3 * u ** 2 + 1;
+  const h10 = u ** 3 - 2 * u ** 2 + u;
+  const h01 = -2 * u ** 3 + 3 * u ** 2;
+  const h11 = u ** 3 - u ** 2;
+  return h00 * vs[i] + h10 * h * m[i] + h01 * vs[i + 1] + h11 * h * m[i + 1];
+};
+export const poseAt = (sec: number, keys: [number, Pose][], _easing?: (t: number) => number) => {
+  const ts = keys.map((k) => k[0]);
+  const out = {} as Record<(typeof PROPS)[number], number>;
+  for (const p of PROPS) out[p] = mono(ts, keys.map((k) => (k[1][p] ?? DEF[p]) as number), sec);
+  return out as Pose;
 };
 
 /** Home pose: window to the right, headline column on the left. */

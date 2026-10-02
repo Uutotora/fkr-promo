@@ -14,7 +14,6 @@ export const LightStage: React.FC<{ glowX?: number; glowY?: number; intensity?: 
         style={{
           backgroundImage: "radial-gradient(rgba(0,2,48,0.075) 1.3px, transparent 1.3px)",
           backgroundSize: "34px 34px",
-          backgroundPosition: `${(s * 6) % 34}px ${(s * 3) % 34}px`,
           maskImage: "radial-gradient(ellipse 70% 70% at 50% 50%, black 30%, transparent 85%)",
         }}
       />
@@ -53,7 +52,7 @@ export const NightStage: React.FC = () => (
 /** Fine film grain to keep large flat areas alive. */
 export const Grain: React.FC<{ opacity?: number }> = ({ opacity = 0.05 }) => {
   const s = useSec();
-  const seed = Math.floor(s * 24) % 8;
+  const seed = 3; // a still grain: animated noise reads as shaking on UI
   return (
     <AbsoluteFill style={{ pointerEvents: "none", opacity, mixBlendMode: "overlay" }}>
       <svg width="100%" height="100%">

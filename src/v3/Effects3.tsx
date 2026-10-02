@@ -40,7 +40,7 @@ const Hero: React.FC<{ i: number; at: number; from: { x: number; y: number }; ch
   const x = from.x + (to.x - from.x) * f;
   const y = from.y + (to.y - from.y) * f;
   return (
-    <div style={{ position: "absolute", left: x, top: y, translate: "-50% -50%", scale: String((0.9 + 0.1 * k) * (1 - f * 0.78)), opacity: Math.min(1, k * 1.5) * (1 - tw(f, [0.7, 1], [0, 1])), whiteSpace: "nowrap", fontSize: size, fontWeight: 800, letterSpacing: "-0.045em", lineHeight: 1, color: C.ink, fontVariantNumeric: "tabular-nums", textShadow: f > 0 ? `0 0 ${40 * f}px rgba(49,107,253,0.6)` : undefined }}>
+    <div style={{ position: "absolute", left: x, top: y, translate: "-50% -50%", scale: String((0.9 + 0.1 * k) * (1 - f * 0.78)), opacity: Math.min(1, k * 1.5) * (1 - tw(f, [0.3, 0.85], [0, 1])), whiteSpace: "nowrap", fontSize: size, fontWeight: 800, letterSpacing: "-0.045em", lineHeight: 1, color: C.ink, fontVariantNumeric: "tabular-nums", textShadow: f > 0 ? `0 0 ${40 * f}px rgba(49,107,253,0.6)` : undefined }}>
       {children}
     </div>
   );
@@ -90,7 +90,7 @@ export const Effects3: React.FC = () => {
   const railOut = tw(s, [E3.converge - 0.4, E3.converge], [0, 1]);
 
   // total: big in beat 0, docks above the rail, returns for the summary
-  const tot = tw(s, [e0 + 0.2, e0 + 2.0], [0, 1.05], OUT);
+  const tot = tw(s, [e0 + 0.2, e0 + 2.0], [0, 1], OUT);
   const dockIn = tw(s, [e1 - 0.6, e1], [0, 1], INOUT);
   const back = tw(s, [E3.sum, E3.sum + 0.8], [0, 1], INOUT);
   const totY = 470 + (124 - 470) * dockIn + (380 - 124) * back;
@@ -117,7 +117,7 @@ export const Effects3: React.FC = () => {
       {/* total */}
       <div style={{ position: "absolute", left: 960, top: totY, translate: "-50% -50%", scale: String(totS * (1 - conv * 0.95)), whiteSpace: "nowrap", textAlign: "center", opacity: tw(s, [e0, e0 + 0.4], [0, 1]) * (1 - tw(s, [E3.converge - 0.1, E3.converge + 0.35], [0, 1])) }}>
         <div style={{ fontSize: 190, fontWeight: 800, letterSpacing: "-0.05em", lineHeight: 1, color: C.ink, fontVariantNumeric: "tabular-nums" }}>
-          <span style={{ color: C.blue, textShadow: "0 0 40px rgba(49,107,253,0.45)" }}>≈</span> {num(tot, 2)} <span style={{ fontSize: 100 }}>млрд ₽</span>
+          <span style={{ color: C.blue, textShadow: "0 0 40px rgba(49,107,253,0.45)" }}>≈</span> {tot >= 0.995 ? "1" : num(tot, 2)} <span style={{ fontSize: 100 }}>млрд ₽</span>
         </div>
         <div style={{ fontSize: 40, fontWeight: 650, color: C.muted, marginTop: 12 }}>в год</div>
       </div>

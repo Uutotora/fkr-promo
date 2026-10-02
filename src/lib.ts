@@ -13,24 +13,31 @@ export const OUT = Easing.bezier(0.23, 1, 0.32, 1);
 export const IN = Easing.bezier(0.55, 0, 1, 0.45);
 
 /** Scenes keep their own authored clock; the film places them by shifting time. */
-/** A hold: at authored time `at` the scene slows down — `film` seconds of film advance the
-    authored clock by only `adv` seconds — giving the viewer time to read without a freeze. */
+/** A hold: at time `at` the clock slows down — `film` seconds of film advance it by only
+    `adv` seconds — giving the viewer time to read without a freeze. */
 export type Hold = { at: number; film: number; adv: number };
-const Shift = createContext<{ by: number; holds: Hold[] }>({ by: 0, holds: [] });
-export const TimeShift: React.FC<{ by: number; holds?: Hold[]; children: React.ReactNode }> = ({ by, holds = [], children }) =>
-  React.createElement(Shift.Provider, { value: { by, holds } }, children);
 
-/** Current time in seconds on the scene's authored clock. */
-export const useSec = () => {
-  const frame = useCurrentFrame();
-  const { by, holds } = useContext(Shift);
-  let t = frame / FPS - by;
+/** Map a clock through a sorted list of holds (outer clock → inner clock). */
+export const applyHolds = (t: number, holds: Hold[]) => {
   for (const h of holds) {
     if (t <= h.at) break;
     if (t < h.at + h.film) return h.at + ((t - h.at) / h.film) * h.adv;
     t = t - h.film + h.adv;
   }
   return t;
+};
+
+type Clock = { global: Hold[]; by: number; holds: Hold[] };
+const Shift = createContext<Clock>({ global: [], by: 0, holds: [] });
+/** Places a scene on the film clock: global reading holds → shift → the scene's own holds. */
+export const TimeShift: React.FC<{ by: number; holds?: Hold[]; global?: Hold[]; children: React.ReactNode }> = ({ by, holds = [], global = [], children }) =>
+  React.createElement(Shift.Provider, { value: { by, holds, global } }, children);
+
+/** Current time in seconds on the scene's authored clock. */
+export const useSec = () => {
+  const frame = useCurrentFrame();
+  const { global, by, holds } = useContext(Shift);
+  return applyHolds(applyHolds(frame / FPS, global) - by, holds);
 };
 
 /** Clamped interpolation over seconds. */
