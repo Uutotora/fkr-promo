@@ -132,11 +132,12 @@ const Route: React.FC = () => {
   );
 };
 
-export const S7Tmc: React.FC = () => {
+/** fromSheet: the window arrives flat where the «Смета» sheet opened, then tilts home. */
+export const S7Tmc: React.FC<{ fromSheet?: boolean }> = ({ fromSheet }) => {
   const s = useSec();
   const t = TL.tmc;
   const keys: [number, Pose][] = [
-    [46.2, { ...HOME, x: 3000, ry: -30, blur: 30 }],
+    fromSheet ? [46.2, { x: 1240, y: 590, s: 0.66, rx: 0, ry: 0 }] : [46.2, { ...HOME, x: 3000, ry: -30, blur: 30 }],
     [46.8, { ...HOME }],
     [47.3, { ...HOME, s: 0.69, x: 1230 }],
     [47.95, focus(790, 520, 1.42)],
@@ -146,6 +147,7 @@ export const S7Tmc: React.FC = () => {
     [51.3, { x: 960, y: 1500, s: 0.6, rx: 30, ry: 0, o: 0, blur: 10 }],
   ];
   const pose = poseAt(s, keys, (x) => (s < 46.8 ? OUT(x) : INOUT(x)));
+  const blank = fromSheet ? 1 - tw(s, [46.2, 46.5], [0, 1]) : 0;
   return (
     <AbsoluteFill style={{ fontFamily: FONT }}>
       <LightStage glowX={0.45} />
@@ -159,6 +161,7 @@ export const S7Tmc: React.FC = () => {
           <AppWindow nav="tmc" tmcSub="Заявки и поставки" role="Подрядчик" roleSub="ООО «Городские системы»" tabs={[{ id: "r", label: "Заявки и поставки", icon: "package", active: true }]} overlay={<TmcForm at={46.35} qtyClick={t.clickQty} type={t.type} limit={t.limit} reasonAt={49.35} sendPress={t.clickSend} />}>
             <TmcRegistry />
           </AppWindow>
+          {blank > 0 && <div style={{ position: "absolute", inset: 0, borderRadius: 26, background: C.bg, opacity: blank }} />}
           <div style={{ position: "absolute", inset: 0 }}>
             <Cursor
               keys={[

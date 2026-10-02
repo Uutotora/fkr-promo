@@ -347,8 +347,8 @@ const Screen: React.FC = () => {
 export const Market4: React.FC = () => {
   const s = useSec();
   const keys: [number, Pose][] = [
-    [94.0, { ...HOME, x: 1240, y: 900, s: 0.5, rx: 24, ry: 0, o: 0, blur: 20 }],
-    [94.7, { ...HOME }],
+    [94.15, { x: 1240, y: 590, s: 0.66, rx: 0, ry: 0 }],
+    [94.8, { ...HOME }],
     [95.4, { ...HOME, s: 0.68, x: 1232 }],
     [96.0, focus(840, 330, 1.12)],
     [97.1, focus(860, 360, 1.1)],
@@ -358,11 +358,15 @@ export const Market4: React.FC = () => {
     [101.6, focus(1190, 390, 1.2)],
     [102.8, focus(820, 520, 1.0)],
     [103.6, { ...HOME, x: 1270, s: 0.64 }],
-    [105.8, { ...HOME, x: 1262, s: 0.66 }],
+    [105.3, { ...HOME, x: 1262, s: 0.66 }],
+    [106.15, { x: 960, y: 560, s: 0.62, rx: 0, ry: 0 }],
   ];
   const pose = poseAt(s, keys, (x) => (s < 94.7 ? OUT(x) : INOUT(x)));
-  const ent = tw(s, [MK4.in, MK4.in + 0.4], [0, 1]);
-  const out = tw(s, [MK4.out, MK4.out + 0.5], [0, 1], IN);
+  // the window arrives flat where the «Прогноз потребности» card opened, then tilts home
+  const ent = s >= 94.14 ? 1 : 0;
+  // …and at the end it straightens up, empties and condenses into the signing dialog (S8)
+  const blank = Math.max(1 - tw(s, [94.15, 94.35], [0, 1]), tw(s, [106.0, 106.2], [0, 1]));
+  const out = 0;
   const toast = tw(s, [MK4.toast, MK4.toast + 0.5], [0, 1], EXPO) * (1 - tw(s, [103.0, 103.4], [0, 1]));
   return (
     <AbsoluteFill style={{ fontFamily: FONT, opacity: ent * (1 - out) }}>
@@ -376,13 +380,14 @@ export const Market4: React.FC = () => {
         </div>
       </div>
       <div style={{ position: "absolute", left: 96, top: 330, width: 520 }}>
-        <Rise text={"Материал нужен\nконкретной работе"} at={103.5} size={60} weight={800} highlight={["конкретной", "работе"]} />
-        <div style={{ marginTop: 22, fontSize: 25, color: C.muted, lineHeight: 1.35, opacity: tw(s, [103.9, 104.4], [0, 1]) }}>Потребность из сметы закрывается со склада ФКР или через партнёра</div>
+        <Rise text={"Материал нужен\nконкретной работе"} at={103.5} out={104.85} size={60} weight={800} highlight={["конкретной", "работе"]} />
+        <div style={{ marginTop: 22, fontSize: 25, color: C.muted, lineHeight: 1.35, opacity: tw(s, [103.9, 104.4], [0, 1]) * (1 - tw(s, [104.85, 105.1], [0, 1])) }}>Потребность из сметы закрывается со склада ФКР или через партнёра</div>
       </div>
       <Stage3D pose={pose}>
         <AppWindow nav="market" role="Подрядчик" roleSub="ООО «Городские системы»" tabs={[{ id: "m", label: "Маркет ФКР", icon: "store", active: true }]}>
           <Screen />
         </AppWindow>
+        {blank > 0 && <div style={{ position: "absolute", inset: 0, borderRadius: 26, background: C.bg, opacity: blank }} />}
         <div style={{ position: "absolute", inset: 0 }}>
           <Cursor
             keys={[

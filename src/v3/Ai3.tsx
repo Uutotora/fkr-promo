@@ -77,7 +77,10 @@ const MODULES = [
 export const Ai3: React.FC = () => {
   const s = useSec();
   const ent = tw(s, [AI.in - 0.3, AI.in + 0.15], [0, 1], EXPO);
-  const out = tw(s, [AI.out, AI.out + 0.6], [0, 1], IN);
+  const out = tw(s, [85.3, 85.5], [0, 1], IN);
+  // «Прогноз потребности» opens into the marketplace window (flat HOME: 1056×660 at 712, 260)
+  const mk = tw(s, [84.5, 85.12], [0, 1], INOUT);
+  const away = tw(s, [84.45, 84.85], [0, 1], IN);
 
   // the input travels from the centre to the bottom once the first question is sent
   const dock = tw(s, [AI.send1, AI.send1 + 0.7], [0, 1], INOUT);
@@ -424,10 +427,30 @@ export const Ai3: React.FC = () => {
         </AbsoluteFill>
       )}
 
+      {mk > 0 && (() => {
+        const a = { x: 120 + 4 * ((1680 - 72) / 5 + 18), y: 520, w: (1680 - 72) / 5, h: 252, r: 24 };
+        const b = { x: 712, y: 260, w: 1056, h: 660, r: 17 };
+        const L = (p: number, q: number) => p + (q - p) * mk;
+        const c = 1 - tw(s, [84.5, 84.72], [0, 1]);
+        const bg = Math.round(255 - 12 * tw(mk, [0.3, 0.9], [0, 1]));
+        const M = MODULES[4];
+        return (
+          <div style={{ position: "absolute", left: L(a.x, b.x), top: L(a.y, b.y), width: L(a.w, b.w), height: L(a.h, b.h), borderRadius: L(a.r, b.r), background: `rgb(${bg},${bg},${bg})`, boxShadow: "0 60px 120px -30px rgba(0,2,48,0.3), 0 24px 48px -24px rgba(0,2,48,0.2)", overflow: "hidden", zIndex: 5 }}>
+            <div style={{ position: "absolute", left: 26, top: 26, width: a.w - 52, height: a.h - 52, display: "flex", flexDirection: "column", opacity: c, color: C.ink }}>
+              <div style={{ width: 56, height: 56, borderRadius: 99, background: C.blue50, display: "grid", placeItems: "center" }}>
+                <M.I size={26} color={C.blue} />
+              </div>
+              <div style={{ flex: 1 }} />
+              <div style={{ fontSize: 25, fontWeight: 800, lineHeight: 1.15, marginTop: 24 }}>{M.t}</div>
+              <div style={{ fontSize: 17, marginTop: 8, opacity: 0.75, lineHeight: 1.3 }}>{M.d}</div>
+            </div>
+          </div>
+        );
+      })()}
       {/* modules */}
       {s >= AI.modules - 0.1 && (
         <AbsoluteFill>
-          <div style={{ position: "absolute", left: 0, right: 0, top: 230, display: "flex", flexDirection: "column", alignItems: "center", gap: 18 }}>
+          <div style={{ position: "absolute", left: 0, right: 0, top: 230, display: "flex", flexDirection: "column", alignItems: "center", gap: 18, opacity: 1 - away, translate: `0 ${-away * 30}px` }}>
             <Rise text="ИИ берёт рутинные проверки на себя" at={AI.modules} size={64} weight={800} highlight={["ИИ"]} center />
             <div style={{ fontSize: 26, color: C.muted, fontWeight: 500, opacity: tw(s, [AI.modules + 0.4, AI.modules + 0.9], [0, 1]) }}>
               <IShield size={22} color={C.green} style={{ verticalAlign: "-3px" }} /> Модели работают в контуре Фонда, без передачи данных наружу
@@ -437,7 +460,7 @@ export const Ai3: React.FC = () => {
             {MODULES.map((m, i) => {
               const k = tw(s, [AI.modules + 0.3 + i * 0.1, AI.modules + 1.0 + i * 0.1], [0, 1], EXPO);
               return (
-                <div key={m.t} style={{ background: i === 1 ? C.blue : "#fff", color: i === 1 ? "#fff" : C.ink, borderRadius: 24, padding: 26, minHeight: 230, boxSizing: "border-box", boxShadow: "0 30px 60px -30px rgba(0,2,48,0.35)", opacity: k, translate: `0 ${(1 - k) * 80}px`, display: "flex", flexDirection: "column" }}>
+                <div key={m.t} style={{ background: i === 1 ? C.blue : "#fff", color: i === 1 ? "#fff" : C.ink, borderRadius: 24, padding: 26, height: 252, boxSizing: "border-box", boxShadow: "0 30px 60px -30px rgba(0,2,48,0.35)", opacity: i === 4 && mk > 0 ? 0 : k * (1 - tw(s, [84.45 + i * 0.03, 84.8 + i * 0.03], [0, 1], IN)), translate: `0 ${(1 - k) * 80 + tw(s, [84.45 + i * 0.03, 84.8 + i * 0.03], [0, 60], IN)}px`, display: "flex", flexDirection: "column" }}>
                   <div style={{ width: 56, height: 56, borderRadius: 99, background: i === 1 ? "rgba(255,255,255,0.18)" : C.blue50, display: "grid", placeItems: "center" }}>
                     <m.I size={26} color={i === 1 ? "#fff" : C.blue} />
                   </div>

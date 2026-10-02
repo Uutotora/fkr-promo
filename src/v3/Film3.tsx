@@ -6,8 +6,8 @@ import { FPS, TimeShift, applyHolds, tw, type Hold } from "../lib";
 import { HOLDS, HOLD_EXTRA } from "./holds";
 import { Moscow } from "./Moscow";
 import { Hook } from "../v2/Hook";
-import { Now3, NOW3 } from "./Now3";
-import { Dawn } from "../v2/Dawn";
+import { Now4 } from "./Now4";
+import { Dawn3 } from "./Dawn3";
 import { Ai3 } from "./Ai3";
 import { Market4 } from "./Market4";
 import { Effects3 } from "./Effects3";
@@ -23,30 +23,31 @@ import { Grain } from "../components/Backdrop";
 
 export const FILM3_DURATION = Math.ceil((148.5 + HOLD_EXTRA) * 2) / 2;
 
+// connected transitions: each scene hands its shape to the next one
+const Dash = () => <S4Dashboard morphIn />;
+const Obj = () => <S6Object toTmc />;
+const Tmc = () => <S7Tmc fromSheet />;
+const Sign = () => <S8Sign fromWindow />;
+
 type Item = { at: [number, number]; shift?: number; holds?: Hold[]; C: React.FC; fadeIn?: number };
 
 const ITEMS: Item[] = [
   { at: [0, 39.45], C: Moscow },
   { at: [0, 8.2], C: Hook },
-  { at: [8, 33.6], C: Now3 },
-  { at: [38.4, 49.05], shift: 19, C: S4Dashboard, fadeIn: 0.45 },
-  { at: [33, 39.4], shift: 9, C: Dawn },
+  { at: [8, 33.6], C: Now4 },
+  { at: [38.4, 49.05], shift: 19, C: Dash, fadeIn: 0.45 },
+  { at: [33, 39.4], shift: 9, C: Dawn3 },
   { at: [49, 57.05], shift: 19, C: S5Objects },
-  { at: [57, 65.3], shift: 19, C: S6Object },
-  { at: [65.2, 76.3], shift: 19, holds: [{ at: 47.15, film: 1.02, adv: 0.02 }], C: S7Tmc },
+  { at: [57, 65.3], shift: 19, C: Obj },
+  { at: [65.2, 76.3], shift: 19, holds: [{ at: 47.15, film: 1.02, adv: 0.02 }], C: Tmc },
   { at: [75.7, 95.5], shift: 10, C: Ai3 },
   { at: [95, 108.9], shift: 1, holds: [{ at: 95.2, film: 1.52, adv: 0.02 }], C: Market4 },
-  { at: [108.75, 114.8], shift: 52.5, C: S8Sign },
+  { at: [108.75, 114.8], shift: 52.5, C: Sign },
   { at: [114.5, 141], shift: 2.5, C: Effects3 },
   { at: [140.92, 148.5], shift: 72.5, C: S10Close },
 ];
 
-const SWEEPS = [
-  ...NOW3.p.slice(1).map((t) => ({ t: t - 0.15, dark: true })),
-  { t: 64.75 },
-  { t: 94.95 },
-  { t: 108.5, dir: -1 as const },
-];
+const SWEEPS: { t: number; dark?: boolean; dir?: 1 | -1 }[] = [];
 
 export const Film3: React.FC<{ withAudio?: boolean }> = ({ withAudio = true }) => {
   // the v5 clock: real film time with the reading holds taken out

@@ -50,7 +50,8 @@ const Sheet: React.FC<{ i: number; t: string; sub: string; Icon: React.FC<{ size
   </div>
 );
 
-export const S6Object: React.FC = () => {
+/** toTmc: instead of the whip pan, the «Смета» sheet opens into the window of the ТМЦ request. */
+export const S6Object: React.FC<{ toTmc?: boolean }> = ({ toTmc }) => {
   const s = useSec();
   const ob = TL.object;
   const gx = CX + objTabX(6);
@@ -65,7 +66,10 @@ export const S6Object: React.FC = () => {
   const pose = poseAt(s, keys, INOUT);
   const fan = tw(s, [ob.fan, ob.fan + 1.3], [0, 1], EXPO);
   const winOut = tw(s, [ob.fan + 0.05, ob.fan + 0.45], [0, 1]);
-  const whip = tw(s, [45.75, 46.3], [0, 1], IN);
+  const whip = toTmc ? 0 : tw(s, [45.75, 46.3], [0, 1], IN);
+  // «Смета» → the ТМЦ window (flat HOME: centre 1240×590, scale 0.66 = 2.64 × the sheet)
+  const ct = toTmc ? tw(s, [45.45, 46.2], [0, 1], INOUT) : 0;
+  const fall = toTmc ? tw(s, [45.35, 45.75], [0, 1], IN) : 0;
 
   return (
     <AbsoluteFill style={{ fontFamily: FONT }}>
@@ -102,14 +106,29 @@ export const S6Object: React.FC = () => {
       {s >= ob.fan && (
         <AbsoluteFill style={{ translate: `${-whip * 2400}px 0`, filter: whip > 0 ? `blur(${whip * 30}px)` : undefined }}>
           <AbsoluteFill style={{ perspective: 2400 }}>
-            <div style={{ position: "absolute", left: 960, top: 620, transformStyle: "preserve-3d", transform: `rotateX(${30 * fan}deg) rotateZ(${-9 * fan}deg) scale(${0.9 + 0.1 * fan})` }}>
+            <div style={{ position: "absolute", left: 960, top: 620, transformStyle: "preserve-3d", transform: `rotateX(${30 * fan * (1 - ct)}deg) rotateZ(${-9 * fan * (1 - ct)}deg) scale(${0.9 + 0.1 * fan})` }}>
               {SHEETS.map((sh, i) => {
                 const k = tw(s, [ob.fanCards[i], ob.fanCards[i] + 0.8], [0, 1], EXPO);
                 const col = i % 4;
                 const row = Math.floor(i / 4);
                 const x = (col - 1.5) * 432;
                 const y = (row - 0.5) * 282;
-                const lift = Math.sin(s * 1.6 + i * 0.9) * 8;
+                const lift = Math.sin(s * 1.6 + i * 0.9) * 8 * (1 - ct);
+                if (toTmc && i === 2 && ct > 0) {
+                  const tx = x + (280 - x) * ct;
+                  const ty = y + (-30 - y) * ct;
+                  const sc = 1 + 1.64 * ct;
+                  const c = 1 - tw(s, [45.45, 45.7], [0, 1]);
+                  const bgK = tw(s, [45.6, 46.0], [0, 1]);
+                  return (
+                    <div key={sh.t} style={{ position: "absolute", left: -200, top: -125, width: 400, height: 250, transform: `translate3d(${tx}px, ${ty}px, ${(lift + 20) * (1 - ct)}px) scale(${sc})`, borderRadius: 24 + (6.4 - 24) * ct, background: bgK > 0 ? `rgb(${Math.round(255 - 12 * bgK)},${Math.round(255 - 12 * bgK)},${Math.round(255 - 12 * bgK)})` : "#fff", boxShadow: "0 40px 60px -30px rgba(0,2,48,0.45), 0 0 0 1px rgba(0,2,48,0.04)", overflow: "hidden" }}>
+                      <div style={{ opacity: c }}>
+                        <Sheet i={i} t={sh.t} sub={sh.sub} Icon={sh.icon} />
+                      </div>
+                    </div>
+                  );
+                }
+                const away = toTmc ? tw(s, [45.35 + i * 0.02, 45.75 + i * 0.02], [0, 1], IN) : 0;
                 return (
                   <div
                     key={sh.t}
@@ -117,8 +136,8 @@ export const S6Object: React.FC = () => {
                       position: "absolute",
                       left: -200,
                       top: -125,
-                      transform: `translate3d(${x}px, ${y + (1 - k) * 120}px, ${(1 - k) * -400 + lift + k * 20}px)`,
-                      opacity: Math.min(1, k * 1.6),
+                      transform: `translate3d(${x}px, ${y + (1 - k) * 120 + away * 60}px, ${(1 - k) * -400 + lift + k * 20 - away * 300}px)`,
+                      opacity: Math.min(1, k * 1.6) * (1 - away),
                     }}
                   >
                     <Sheet i={i} t={sh.t} sub={sh.sub} Icon={sh.icon} hero={i === 5} />
@@ -127,7 +146,7 @@ export const S6Object: React.FC = () => {
               })}
             </div>
           </AbsoluteFill>
-          <div style={{ position: "absolute", left: 0, right: 0, top: 128, display: "flex", justifyContent: "center", opacity: 1 - whip }}>
+          <div style={{ position: "absolute", left: 0, right: 0, top: 128, display: "flex", justifyContent: "center", opacity: (1 - whip) * (1 - fall) }}>
             <Rise text="Все разделы объекта — в одной вкладке" at={ob.fan + 0.5} size={58} weight={780} highlight={["одной", "вкладке"]} center />
           </div>
         </AbsoluteFill>

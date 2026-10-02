@@ -84,7 +84,7 @@ const Person: React.FC<{ hot: number }> = ({ hot }) => (
 export const Effects3: React.FC = () => {
   const s = useSec();
   const [e0, e1, e2, e3, e4, e5] = E3.e;
-  const ent = tw(s, [E3.in, E3.in + 0.5], [0, 1]);
+  const ent = s >= E3.in ? 1 : 0;
   const conv = tw(s, [E3.converge, E3.end], [0, 1], (t) => t * t * (3 - 2 * t));
   const white = tw(s, [E3.converge + 0.3, E3.end], [0, 1]);
   const railOut = tw(s, [E3.converge - 0.4, E3.converge], [0, 1]);
@@ -107,8 +107,9 @@ export const Effects3: React.FC = () => {
     <AbsoluteFill style={{ fontFamily: FONT, opacity: ent }}>
       <LightStage glowX={0.5} glowY={0.45} intensity={1 - white} />
       <AbsoluteFill style={{ background: "#fff", opacity: white }} />
-      {/* stamp shock → this scene: an expanding ring of light */}
-      <div style={{ position: "absolute", left: 960, top: 540, width: 40, height: 40, translate: "-50% -50%", borderRadius: 999, boxShadow: `0 0 0 4px rgba(49,107,253,${0.5 * (1 - tw(s, [E3.in, E3.in + 0.9], [0, 1]))}), 0 0 80px rgba(49,107,253,${0.4 * (1 - tw(s, [E3.in, E3.in + 0.9], [0, 1]))})`, scale: String(1 + tw(s, [E3.in, E3.in + 0.9], [0, 60], OUT)) }} />
+      {/* the signed document arrives as a point of light; it blooms into the scene */}
+      <div style={{ position: "absolute", left: 960, top: 470, width: 300, height: 300, translate: "-50% -50%", borderRadius: "50%", background: "radial-gradient(closest-side, rgba(49,107,253,0.5), rgba(49,107,253,0.18) 45%, rgba(49,107,253,0))", scale: String(0.3 + tw(s, [E3.in, E3.in + 1.0], [0, 9], OUT)), opacity: 1 - tw(s, [E3.in + 0.2, E3.in + 1.0], [0, 1]) }} />
+      <div style={{ position: "absolute", left: 960, top: 470, width: 60, height: 60, translate: "-50% -50%", borderRadius: "50%", background: C.blue, boxShadow: "0 0 60px rgba(49,107,253,0.6)", scale: String(1 - tw(s, [E3.in, E3.in + 0.3], [0, 1], IN)), opacity: 1 - tw(s, [E3.in + 0.15, E3.in + 0.3], [0, 1]) }} />
 
       <div style={{ position: "absolute", left: 0, right: 0, top: 30, display: "flex", justifyContent: "center", opacity: 1 - railOut }}>
         <Eyebrow n="₽" label="Эффект от внедрения единой системы" at={E3.in + 0.1} />

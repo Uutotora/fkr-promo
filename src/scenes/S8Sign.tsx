@@ -14,10 +14,13 @@ const SIGN_BTN = { x: D.x + D.w - 36 - 90, y: D.y + 312 };
 
 const STEPS = ["Проверка сертификата", "Вычисление хэша документа", "Формирование подписи", "Отправка в Диадок"];
 
-export const S8Sign: React.FC = () => {
+/** fromWindow: the dialog is the marketplace window condensed (flat window 992×620 at 464, 250). */
+export const S8Sign: React.FC<{ fromWindow?: boolean }> = ({ fromWindow }) => {
   const s = useSec();
   const g = TL.sign;
-  const enter = tw(s, [g.dialog, g.dialog + 0.6], [0, 1], EXPO);
+  const enter = fromWindow ? tw(s, [56.66, 56.82], [0, 1]) : tw(s, [g.dialog, g.dialog + 0.6], [0, 1], EXPO);
+  const mk = fromWindow ? tw(s, [56.25, 56.75], [0, 1], INOUT) : 1;
+  const behind = fromWindow ? tw(s, [56.3, 56.8], [0, 1]) : 1;
   const signing = s >= g.clickSign + 0.15;
   const doneAll = s >= g.steps[3] + 0.3;
   const prog = tw(s, [g.clickSign + 0.15, g.steps[3] + 0.2], [0, 1], INOUT);
@@ -25,13 +28,17 @@ export const S8Sign: React.FC = () => {
   const stamp = tw(s, [g.stamp, g.stamp + 0.32], [0, 1], (t) => t * t);
   const stampSettle = pop(s, g.stamp + 0.28, 0.5);
   const shock = tw(s, [g.stamp + 0.3, g.stamp + 1.1], [0, 1], EXPO);
-  const out = tw(s, [61.75, 62.3], [0, 1], IN);
+  const out = fromWindow ? tw(s, [61.6, 61.95], [0, 1], IN) : tw(s, [61.75, 62.3], [0, 1], IN);
+  // fromWindow: at the end the signed document condenses into a point of light where the
+  // total of the effects will appear (960, 470)
+  const om = fromWindow ? tw(s, [61.6, 62.0], [0, 1], INOUT) : 0;
+  const Lm = (a: number, b: number) => a + (b - a) * om;
   const h = 370 + tw(s, [g.steps[3] + 0.3, g.steps[3] + 0.8], [0, 190], EXPO);
 
   return (
     <AbsoluteFill style={{ fontFamily: FONT }}>
       <LightStage glowX={0.5} glowY={0.6} />
-      <div style={{ opacity: 0.55 * (1 - out), filter: "blur(6px)" }}>
+      <div style={{ opacity: 0.55 * (1 - out) * behind, filter: "blur(6px)" }}>
         <Stage3D pose={{ ...HOME, x: 960, y: 620, s: 0.78, rx: 8, ry: 0 }}>
           <AppWindow nav="tmc" tmcSub="Заявки и поставки" tabs={[{ id: "r", label: "З-2026-0201", icon: "package", active: true }]}>
             <TmcRegistry title="З-2026-0201" />
@@ -43,19 +50,33 @@ export const S8Sign: React.FC = () => {
         <Rise text="КЭП и Диадок — без бумаги и курьеров" at={g.dialog + 0.1} size={60} weight={780} highlight={["без", "бумаги"]} />
       </div>
 
+      {mk < 1 && (
+        <div
+          style={{
+            position: "absolute",
+            left: 464 + (D.x - 464) * mk,
+            top: 250 + (D.y - 250) * mk,
+            width: 992 + (D.w - 992) * mk,
+            height: 620 + (370 - 620) * mk,
+            borderRadius: 16 + 12 * mk,
+            background: `rgb(${243 + 12 * mk},${243 + 12 * mk},${243 + 12 * mk})`,
+            boxShadow: "0 50px 100px -30px rgba(0,2,48,0.4)",
+          }}
+        />
+      )}
       <div
         style={{
           position: "absolute",
-          left: D.x,
-          top: D.y,
-          width: D.w,
-          height: h,
-          borderRadius: 28,
+          left: Lm(D.x, 930),
+          top: Lm(D.y, 440),
+          width: Lm(D.w, 60),
+          height: Lm(h, 60),
+          borderRadius: Lm(28, 30),
           background: "#fff",
-          boxShadow: "0 50px 100px -30px rgba(0,2,48,0.45), 0 0 0 1px rgba(0,2,48,0.05)",
-          opacity: enter * (1 - out),
-          scale: String((0.92 + 0.08 * enter) * (1 - out * 0.06)),
-          translate: `0 ${(1 - enter) * 40}px`,
+          boxShadow: om > 0 ? `0 0 ${80 * om}px rgba(49,107,253,${0.6 * om})` : "0 50px 100px -30px rgba(0,2,48,0.45), 0 0 0 1px rgba(0,2,48,0.05)",
+          opacity: fromWindow ? enter : enter * (1 - out),
+          scale: String((fromWindow ? 1 : 0.92 + 0.08 * enter) * (1 - out * 0.06)),
+          translate: `0 ${fromWindow ? 0 : (1 - enter) * 40}px`,
           overflow: "hidden",
         }}
       >
@@ -144,6 +165,7 @@ export const S8Sign: React.FC = () => {
             Готово
           </div>
         )}
+        {om > 0 && <div style={{ position: "absolute", inset: 0, background: `rgb(${Math.round(255 + (49 - 255) * tw(om, [0.3, 0.8], [0, 1]))},${Math.round(255 + (107 - 255) * tw(om, [0.3, 0.8], [0, 1]))},${Math.round(255 + (253 - 255) * tw(om, [0.3, 0.8], [0, 1]))})`, opacity: tw(om, [0, 0.22], [0, 1]) }} />}
       </div>
       {/* impact ring: a thin line of light */}
       {shock > 0 && shock < 1 && (
