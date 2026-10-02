@@ -69,7 +69,14 @@ const Route: React.FC = () => {
       </div>
       <div style={{ position: "absolute", left: 210, top: 470, width: W, height: 300, scale: String(0.94 + 0.06 * enter) }}>
         <div style={{ position: "absolute", left: 0, top: 38, width: W, height: 6, borderRadius: 99, background: "#E4E7F0" }} />
-        <div style={{ position: "absolute", left: 0, top: 38, width: gap * fill, height: 6, borderRadius: 99, background: C.blue }} />
+        <div style={{ position: "absolute", left: 0, top: 38, width: gap * fill, height: 6, borderRadius: 99, background: C.blue, boxShadow: "0 0 18px rgba(49,107,253,0.45)" }} />
+        {/* the request itself: a point of light running from desk to desk */}
+        {fill > 0.02 && fill < STEPS.length - 1.02 && (
+          <div style={{ position: "absolute", left: gap * fill, top: 41, width: 0, height: 0 }}>
+            <div style={{ position: "absolute", left: -60, top: -60, width: 120, height: 120, borderRadius: "50%", background: "radial-gradient(closest-side, rgba(49,107,253,0.5), rgba(49,107,253,0))" }} />
+            <div style={{ position: "absolute", left: -8, top: -8, width: 16, height: 16, borderRadius: 99, background: "#fff", boxShadow: `0 0 0 4px ${C.blue}, 0 0 20px rgba(49,107,253,0.9)` }} />
+          </div>
+        )}
         {STEPS.map((st, i) => {
           const done = s >= stepAt[i] + (i === STEPS.length - 1 ? 99 : 0);
           const current = !done && (i === 0 || s >= stepAt[i]);
@@ -110,7 +117,7 @@ const Route: React.FC = () => {
       <div
         style={{
           position: "absolute",
-          left: 960,
+          left: 210 + gap * Math.min(fill, STEPS.length - 1.6),
           top: 760,
           display: "flex",
           alignItems: "center",
@@ -178,27 +185,30 @@ export const S7Tmc: React.FC<{ fromSheet?: boolean }> = ({ fromSheet }) => {
           </div>
         </Stage3D>
       )}
-      {/* call-out on the guard */}
-      {s > t.limit && s < 51 && (
-        <div
-          style={{
-            position: "absolute",
-            left: 1215,
-            top: 770,
-            scale: String(pop(s, t.limit + 0.1, 0.55)),
-            opacity: 1 - tw(s, [49.3, 49.6], [0, 1]),
-            padding: "18px 26px",
-            borderRadius: 22,
-            background: C.red,
-            color: "#fff",
-            fontFamily: FONT,
-            boxShadow: "0 24px 60px -16px rgba(208,52,75,0.7)",
-          }}
-        >
-          <div style={{ fontSize: 22, fontWeight: 600, opacity: 0.85 }}>по смете и МГЭ — 10 шт.</div>
-          <div style={{ fontSize: 44, fontWeight: 800, letterSpacing: "-0.02em" }}>в заявке 100</div>
-        </div>
-      )}
+      {/* the guard: the request against the estimate, side by side */}
+      {s > t.limit && s < 51 && (() => {
+        const k = tw(s, [t.limit + 0.08, t.limit + 0.7], [0, 1], EXPO);
+        const o = tw(s, [49.25, 49.6], [0, 1], IN);
+        const p = pop(s, t.limit + 0.1, 0.6);
+        return (
+          <div style={{ position: "absolute", left: 1150, top: 720, transformOrigin: "0% 50%", scale: String((0.7 + 0.3 * Math.max(0, p)) * (1 - o * 0.08)), opacity: Math.min(1, k * 1.6) * (1 - o), padding: "24px 30px 26px", borderRadius: 28, background: "#fff", boxShadow: "0 40px 80px -24px rgba(208,52,75,0.45), 0 0 60px rgba(208,52,75,0.12)", fontFamily: FONT, whiteSpace: "nowrap" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 17, fontWeight: 800, letterSpacing: "0.02em", color: C.red }}>
+              <IAlert size={19} color={C.red} /> Проверка по смете
+            </div>
+            <div style={{ display: "flex", alignItems: "flex-end", gap: 22, marginTop: 14 }}>
+              <div>
+                <div style={{ fontSize: 16, color: C.muted, fontWeight: 600 }}>в заявке</div>
+                <div style={{ fontSize: 68, fontWeight: 800, letterSpacing: "-0.04em", lineHeight: 1, color: C.red }}>100</div>
+              </div>
+              <div style={{ marginBottom: 12, padding: "6px 12px", borderRadius: 12, background: C.red, color: "#fff", fontSize: 22, fontWeight: 800, scale: String(Math.max(0, pop(s, t.limit + 0.45, 0.5))) }}>×10</div>
+              <div>
+                <div style={{ fontSize: 16, color: C.muted, fontWeight: 600 }}>по смете и МГЭ</div>
+                <div style={{ fontSize: 68, fontWeight: 800, letterSpacing: "-0.04em", lineHeight: 1, color: C.ink }}>10</div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {s >= t.route && <Route />}
     </AbsoluteFill>

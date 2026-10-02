@@ -1,7 +1,8 @@
-import React, { useMemo } from "react";
+import React from "react";
 import { AbsoluteFill } from "remotion";
 import { C } from "../theme";
-import { INOUT, rand, track, tw, useSec } from "../lib";
+import { INOUT, rand, track, tw, useFilmSec, useSec } from "../lib";
+import { HOLDS } from "./holds";
 
 /* Night Moscow, drawn: a Stalin high-rise with a spire, the University, Ostankino,
    the Moscow-City cluster, П-44 panel towers with loggias and brick five-storeys.
@@ -150,8 +151,8 @@ const mix = (a: string, b: string, t: number) => {
 
 const WARM = ["#FF9A3C", "#FFB25E", "#FFC983", "#FF8A1F", "#FFE3B8"];
 
-const Layer: React.FC<{ id: string; blds: Bld[]; lit: number; dim: number; dawn: number; off: number; night: [string, string]; day: [string, string]; bloom: number }> = ({ id, blds, lit, dim, dawn, off, night, day, bloom }) => {
-  const s = useSec();
+const Layer: React.FC<{ id: string; blds: Bld[]; lit: number; dim: number; dawn: number; off: number; night: [string, string]; day: [string, string]; bloom: number; rip?: number; bx?: number; by?: number; beacon?: number }> = ({ id, blds, lit, dim, dawn, off, night, day, bloom, rip = 0, bx = 0, by = 0, beacon = 0 }) => {
+  const s = useFilmSec();
   const top = mix3(night[0], "#6a5d9a", day[0], dawn);
   const bot = mix3(night[1], "#8a7aa8", day[1], dawn);
   return (
@@ -181,7 +182,9 @@ const Layer: React.FC<{ id: string; blds: Bld[]; lit: number; dim: number; dawn:
       <g filter={`url(#b${id})`}>
         {blds.map((b, i) =>
           b.wins.map((w, j) => {
-            const on = tw(lit - w.th, [0, 0.03], [0, 1]);
+            const base = tw(lit - w.th, [0, 0.03], [0, 1]);
+            // the city wakes again from the one window, in a ring that spreads outward
+            const on = rip > 0 ? Math.max(base, tw(rip - Math.hypot(w.x - bx, w.y - by) - w.th * 160, [0, 50], [0, 1])) : base;
             const offK = tw(off - (1 - w.row / Math.max(1, w.rows)) * 0.5 - w.th * 0.4, [0, 0.1], [0, 1]);
             const flick = 0.85 + 0.15 * Math.sin(s * (1.5 + w.th * 3) + w.th * 50);
             const a = on * flick * dim * (1 - offK);
@@ -191,6 +194,13 @@ const Layer: React.FC<{ id: string; blds: Bld[]; lit: number; dim: number; dawn:
           }),
         )}
       </g>
+      {beacon > 0 && (
+        <g>
+          <rect x={bx - 9} y={by - 12} width={18} height={24} fill="#FFB25E" opacity={0.35 * beacon} style={{ filter: "blur(6px)" }} />
+          <circle cx={bx} cy={by} r={60} fill="rgba(255,170,80,0.18)" opacity={beacon} style={{ filter: "blur(18px)" }} />
+          <rect x={bx - 4} y={by - 7.5} width={8} height={15} fill="#FFE3B8" opacity={beacon} />
+        </g>
+      )}
       {blds.map((b, i) =>
         (b.red ?? []).map((r, j) => (
           <circle key={`r${i}-${j}`} cx={r.x} cy={r.y} r={3} fill="#ff3b4d" opacity={(0.25 + 0.75 * Math.max(0, Math.sin(s * 2.2 + r.p))) * (1 - dawn)} style={{ filter: "drop-shadow(0 0 6px #ff3b4d)" }} />
@@ -202,9 +212,9 @@ const Layer: React.FC<{ id: string; blds: Bld[]; lit: number; dim: number; dawn:
 
 const STARS = Array.from({ length: 120 }, (_, i) => ({ x: rand(i * 3.1) * 1920, y: rand(i * 7.7) * 560, r: 0.5 + rand(i * 1.3) * 1.2, p: rand(i * 5.5) * 6 }));
 
-export const Moscow: React.FC = () => {
-  const s = useSec();
-  const world = useMemo(() => {
+
+/** The city is built once, deterministically. */
+const buildWorld = () => {
     SEED = 7;
     // far: Ostankino, the University, the Moscow-City cluster, low fill
     const k0 = 0.55;
@@ -228,14 +238,53 @@ export const Moscow: React.FC = () => {
       near.push(t > 0.62 ? panel(x, 1095, 150 + R() * 70, 14 + Math.floor(R() * 4), k2) : t > 0.25 ? panel(x, 1095, 180 + R() * 90, 8 + Math.floor(R() * 2), k2) : brick5(x, 1095, 200 + R() * 80, k2));
     }
     return { far, mid, near };
-  }, []);
+};
+const WORLD = buildWorld();
 
-  const lit = 0.05 + tw(s, [0, 0.8], [0, 0.16]) + tw(s, [2.5, 3.1], [0, 0.2]) + tw(s, [4.5, 5.1], [0, 0.18]) + tw(s, [6.5, 7.1], [0, 0.2]) + tw(s, [8, W3.litEnd], [0, 0.12]);
+/* ---- the beacon: the one window where «как сейчас» ends — it lights the city again ---- */
+/** Story time (v5 clock) when the falling light lands, and the city starts to wake from it. */
+export const BEACON_AT = 33.5;
+const filmOf = (sv: number) => sv + HOLDS.reduce((acc, h) => acc + (h.at < sv ? h.film - h.adv : 0), 0);
+const tiltAt = (sv: number) => track(sv, [[0, 0], [W3.tiltUp[0], 0], [W3.tiltUp[1], 1], [W3.tiltDown[0], 1], [W3.tiltDown[1], 0]], INOUT);
+/** Near-layer point (x, y) → screen, for story time sv and real film time ft. */
+export const nearToScreen = (sv: number, ft: number, x: number, y: number) => {
+  const push = 1 + ft * 0.004;
+  const tilt = tiltAt(sv);
+  return { x: 960 + push * (x - ft * 13 - 960), y: 540 + tilt * 470 + push * (y - 540), push };
+};
+/** Pick the near window that sits at ~(1320, 850) on screen when the light lands. */
+export const BEACON = (() => {
+  const ft = filmOf(BEACON_AT);
+  let best = WORLD.near[0].wins[0];
+  let bd = 1e9;
+  for (const b of WORLD.near)
+    for (const w of b.wins) {
+      const p = nearToScreen(BEACON_AT, ft, w.x + w.w / 2, w.y + w.h / 2);
+      const d = Math.hypot(p.x - 1320, p.y - 850);
+      if (d < bd) {
+        bd = d;
+        best = w;
+      }
+    }
+  return { x: best.x + best.w / 2, y: best.y + best.h / 2, w: best.w, h: best.h };
+})();
+
+export const Moscow: React.FC = () => {
+  const s = useSec();
+  const world = WORLD;
+
+  const film = useFilmSec();
+  // the statements light the city; while the problems play it slowly goes dark
+  const lit = 0.05 + tw(s, [0, 0.8], [0, 0.16]) + tw(s, [2.5, 3.1], [0, 0.2]) + tw(s, [4.5, 5.1], [0, 0.18]) + tw(s, [6.5, 7.1], [0, 0.2]) - tw(s, [9.0, 14.0], [0, 0.5], INOUT);
+  const rip = tw(s, [BEACON_AT, BEACON_AT + 1.4], [0, 2300], (t) => 1 - Math.pow(1 - t, 2));
+  const beacon = tw(s, [BEACON_AT - 0.06, BEACON_AT + 0.1], [0, 1]) * (1 - tw(s, [BEACON_AT + 1.2, BEACON_AT + 2.2], [0, 1]));
+  const fb = filmOf(BEACON_AT);
+  const bAt = (k: number) => ({ bx: BEACON.x - fb * 13 + fb * k, by: BEACON.y });
   const tilt = track(s, [[0, 0], [W3.tiltUp[0], 0], [W3.tiltUp[1], 1], [W3.tiltDown[0], 1], [W3.tiltDown[1], 0]], INOUT);
   const dawn = tw(s, W3.dawn, [0, 1], INOUT);
   const off = tw(s, W3.off, [0, 1.6], (t) => t);
   const fly = tw(s, W3.fly, [0, 1], (t) => t * t);
-  const push = 1 + s * 0.004 + fly * 0.6;
+  const push = 1 + film * 0.004 + fly * 0.6;
 
   // Moscow night: deep ink at the zenith, warm sodium haze at the horizon
   const skyTop = mix3("#010210", "#5a63b8", "#eef2fb", dawn);
@@ -246,27 +295,27 @@ export const Moscow: React.FC = () => {
     <AbsoluteFill style={{ overflow: "hidden" }}>
       <AbsoluteFill style={{ background: `linear-gradient(180deg, ${skyTop} 0%, ${skyMid} 50%, ${skyLow} 100%)` }} />
       {/* soft night glows — light, not gradients */}
-      <div style={{ position: "absolute", left: -400 + Math.sin(s * 0.2) * 50, top: -520, width: 1400, height: 1100, borderRadius: "50%", background: "radial-gradient(closest-side, rgba(70,90,255,0.20), rgba(70,90,255,0))", opacity: 1 - dawn }} />
-      <div style={{ position: "absolute", right: -420, top: -480 + Math.cos(s * 0.23) * 40, width: 1300, height: 1000, borderRadius: "50%", background: "radial-gradient(closest-side, rgba(150,90,255,0.14), rgba(150,90,255,0))", opacity: 1 - dawn }} />
+      <div style={{ position: "absolute", left: -400 + Math.sin(film * 0.2) * 50, top: -520, width: 1400, height: 1100, borderRadius: "50%", background: "radial-gradient(closest-side, rgba(70,90,255,0.20), rgba(70,90,255,0))", opacity: 1 - dawn }} />
+      <div style={{ position: "absolute", right: -420, top: -480 + Math.cos(film * 0.23) * 40, width: 1300, height: 1000, borderRadius: "50%", background: "radial-gradient(closest-side, rgba(150,90,255,0.14), rgba(150,90,255,0))", opacity: 1 - dawn }} />
       <svg width={1920} height={1080} style={{ position: "absolute", inset: 0, opacity: (1 - dawn) * 0.9, translate: `0 ${tilt * 120}px` }}>
         {STARS.map((st, i) => (
-          <circle key={i} cx={st.x} cy={st.y} r={st.r} fill="#d6deff" opacity={0.2 + 0.3 * Math.abs(Math.sin(s * 0.7 + st.p))} />
+          <circle key={i} cx={st.x} cy={st.y} r={st.r} fill="#d6deff" opacity={0.2 + 0.3 * Math.abs(Math.sin(film * 0.7 + st.p))} />
         ))}
       </svg>
       {/* horizon glow */}
       <div style={{ position: "absolute", left: -300, right: -300, top: 600 + tilt * 420 - dawn * 60, height: 760, borderRadius: "50%", background: `radial-gradient(closest-side, ${dawn > 0 ? `rgba(255,214,170,${0.25 + dawn * 0.55})` : "rgba(255,130,60,0.34)"}, rgba(255,130,60,0))` }} />
       {dawn > 0 && <div style={{ position: "absolute", left: 960 - 450, top: 760 + tilt * 420 - dawn * 160, width: 900, height: 900, borderRadius: "50%", background: `radial-gradient(closest-side, rgba(255,255,255,${dawn}), rgba(255,236,214,${0.6 * dawn}) 30%, rgba(255,236,214,0) 70%)` }} />}
       <AbsoluteFill style={{ scale: String(push), translate: `0 ${tilt * 470}px`, filter: fly > 0 ? `blur(${fly * 14}px)` : undefined, opacity: 1 - fly * 0.6 }}>
-        <div style={{ position: "absolute", inset: 0, translate: `${-s * 4}px ${-30 + tilt * -60}px` }}>
-          <Layer id="f" blds={world.far} lit={lit * 1.2} dim={0.55} dawn={dawn} off={off} night={["#0c1033", "#060818"]} day={["#cdd6ea", "#dfe5f1"]} bloom={2.5} />
+        <div style={{ position: "absolute", inset: 0, translate: `${-film * 4}px ${-30 + tilt * -60}px` }}>
+          <Layer id="f" blds={world.far} {...bAt(4)} rip={rip} lit={lit * 1.2} dim={0.55} dawn={dawn} off={off} night={["#0c1033", "#060818"]} day={["#cdd6ea", "#dfe5f1"]} bloom={2.5} />
         </div>
         <div style={{ position: "absolute", left: 0, right: 0, top: 640, height: 320, background: `linear-gradient(180deg, transparent, ${dawn > 0 ? `rgba(240,244,252,${0.5 * dawn})` : "rgba(70,40,80,0.28)"}, transparent)` }} />
-        <div style={{ position: "absolute", inset: 0, translate: `${-s * 8}px ${tilt * -30}px` }}>
-          <Layer id="m" blds={world.mid} lit={lit * 1.05} dim={0.78} dawn={dawn} off={off} night={["#0a0d2b", "#04061a"]} day={["#d7deee", "#e4e9f3"]} bloom={3.5} />
+        <div style={{ position: "absolute", inset: 0, translate: `${-film * 8}px ${tilt * -30}px` }}>
+          <Layer id="m" blds={world.mid} {...bAt(8)} rip={rip} lit={lit * 1.05} dim={0.78} dawn={dawn} off={off} night={["#0a0d2b", "#04061a"]} day={["#d7deee", "#e4e9f3"]} bloom={3.5} />
         </div>
         <div style={{ position: "absolute", left: 0, right: 0, top: 820, height: 260, background: `linear-gradient(180deg, transparent, ${dawn > 0 ? "transparent" : "rgba(60,30,60,0.22)"}, transparent)` }} />
-        <div style={{ position: "absolute", inset: 0, translate: `${-s * 13}px 0` }}>
-          <Layer id="n" blds={world.near} lit={lit} dim={1} dawn={dawn} off={off} night={["#080a22", "#020311"]} day={["#e1e6f2", "#eef1f7"]} bloom={4.5} />
+        <div style={{ position: "absolute", inset: 0, translate: `${-film * 13}px 0` }}>
+          <Layer id="n" blds={world.near} bx={BEACON.x} by={BEACON.y} rip={rip} beacon={beacon} lit={lit} dim={1} dawn={dawn} off={off} night={["#080a22", "#020311"]} day={["#e1e6f2", "#eef1f7"]} bloom={4.5} />
         </div>
         <AbsoluteFill style={{ background: `linear-gradient(180deg, transparent 60%, ${dawn > 0 ? `rgba(244,245,248,${0.6 * dawn})` : "rgba(1,2,16,0.6)"} 100%)` }} />
       </AbsoluteFill>

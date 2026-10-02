@@ -2,7 +2,7 @@ import React from "react";
 import { AbsoluteFill } from "remotion";
 import { C, FONT } from "../theme";
 import { EXPO, IN, INOUT, TL, tw, useSec } from "../lib";
-import { AppWindow, HOME, Stage3D, focus, poseAt, type Pose } from "../components/AppWindow";
+import { AppWindow, Flashlight, HOME, Stage3D, focus, poseAt, type Pose } from "../components/AppWindow";
 import { Cursor } from "../components/Cursor";
 import { ObjectCard, objTabX, OBJ_TABS_Y } from "../screens/Objects";
 import { Eyebrow, Rise } from "../components/Type";
@@ -85,6 +85,7 @@ export const S6Object: React.FC<{ toTmc?: boolean }> = ({ toTmc }) => {
             <AppWindow nav="objects" tabs={objectsTabs(s)}>
               <ObjectCard at={0} ganttAt={ob.clickGantt + 0.05} bars={ob.bars} pressTab={ob.clickGantt} />
             </AppWindow>
+            <Flashlight x={1000} y={600} rx={760} ry={300} k={tw(s, [39.9, 40.6], [0, 1], INOUT) * (1 - tw(s, [41.9, 42.5], [0, 1], INOUT))} />
             <div style={{ position: "absolute", inset: 0 }}>
               <Cursor
                 keys={[

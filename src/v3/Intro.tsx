@@ -71,6 +71,6 @@ export const FilmFinal: React.FC<{ withAudio?: boolean }> = ({ withAudio = true 
       <Film3 withAudio={false} />
     </Sequence>
     <Intro />
-    {withAudio && <Audio src={staticFile("audio/v6/soundtrack.wav")} />}
+    {withAudio && <Audio src={staticFile("audio/v7/soundtrack.wav")} />}
   </AbsoluteFill>
 );

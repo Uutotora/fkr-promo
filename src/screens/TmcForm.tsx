@@ -1,6 +1,6 @@
 import React from "react";
 import { C } from "../theme";
-import { EXPO, tw, useSec } from "../lib";
+import { EXPO, INOUT, tw, useSec } from "../lib";
 import { IX, IChevron, ICalendar, IPlus, IAlert } from "../components/Icons";
 
 export const MODAL = { x: 280, y: 78, w: 1040, h: 840 };
@@ -197,6 +197,11 @@ export const TmcForm: React.FC<{ at: number; qtyClick: number; type: number[]; l
         >
           Направить на проверку
         </div>
+        {/* spotlight: the rest of the form steps back into a veil, the material row stays */}
+        {(() => {
+          const k = tw(s, [limit - 0.1, limit + 0.45], [0, 1], EXPO) * (1 - tw(s, [reasonAt - 0.15, reasonAt + 0.35], [0, 1], INOUT));
+          return k > 0.01 ? <div style={{ position: "absolute", left: L - 16, top: 416, width: MODAL.w - 2 * L + 32, height: 178, borderRadius: 18, boxShadow: `0 0 50px 8px rgba(208,52,75,${0.16 * k}), 0 0 0 2400px rgba(244,246,251,${0.78 * k})` }} /> : null;
+        })()}
       </div>
     </>
   );

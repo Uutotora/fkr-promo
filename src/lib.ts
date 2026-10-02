@@ -40,6 +40,10 @@ export const useSec = () => {
   return applyHolds(applyHolds(frame / FPS, global) - by, holds);
 };
 
+/** Real film time, holds ignored: for ambient life (drifts, glows, idle motion) that should
+    keep breathing while a reading hold slows the story down. */
+export const useFilmSec = () => useCurrentFrame() / FPS;
+
 /** Clamped interpolation over seconds. */
 export const tw = (
   s: number,

@@ -1,7 +1,8 @@
 import React from "react";
 import { AbsoluteFill } from "remotion";
 import { C, FONT } from "../theme";
-import { EXPO, IN, INOUT, OUT, pop, tw, useSec } from "../lib";
+import { EXPO, IN, INOUT, OUT, pop, tw, useFilmSec, useSec } from "../lib";
+import { BEACON, BEACON_AT, nearToScreen } from "./Moscow";
 
 /* «Как это работает сейчас», art-directed: glass slabs in space, huge thin numbers,
    light instead of lines and boxes. One object keeps changing form through the five problems:
@@ -29,7 +30,7 @@ const solidGlass: React.CSSProperties = {
   background: "linear-gradient(155deg, rgba(52,60,148,0.97), rgba(24,29,88,0.97) 70%)",
   boxShadow: "0 60px 110px -40px rgba(0,0,0,0.85), inset 0 0 70px rgba(150,170,255,0.10)",
 };
-const NUM: React.CSSProperties = { fontFamily: FONT, fontWeight: 250, letterSpacing: "-0.05em", fontVariantNumeric: "tabular-nums", lineHeight: 1, color: WHITE };
+const NUM: React.CSSProperties = { fontFamily: FONT, fontWeight: 800, letterSpacing: "-0.045em", fontVariantNumeric: "tabular-nums", lineHeight: 1, color: WHITE };
 
 /* ------------------------------------------------------------------ type */
 
@@ -161,7 +162,7 @@ const Systems: React.FC = () => {
               </div>
               <div style={{ flex: 1 }} />
               <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-                <span style={{ ...NUM, fontSize: 128, color: x.v < 0 ? RED : WHITE }}>{x.v < 0 ? (s > t + 1.5 ? "?" : "") : cnt}</span>
+                <span style={{ ...NUM, fontSize: 104, color: x.v < 0 ? RED : WHITE }}>{x.v < 0 ? (s > t + 1.5 ? "?" : "") : cnt}</span>
                 {x.v >= 0 && <span style={{ fontFamily: FONT, fontSize: 22, color: MUTED }}>шт.</span>}
               </div>
             </div>
@@ -201,12 +202,12 @@ const SheetFace: React.FC<{ v: number; roll: number; ghost?: boolean; strike?: n
       <div style={{ position: "relative", height: 150, overflow: "hidden" }}>
         <div style={{ translate: `0 ${-(ghost ? v : roll) * 150}px` }}>
           {QTY.map((q) => (
-            <div key={q} style={{ ...NUM, fontSize: 150, height: 150, lineHeight: "150px" }}>{q}</div>
+            <div key={q} style={{ ...NUM, fontSize: 132, height: 150, lineHeight: "150px" }}>{q}</div>
           ))}
         </div>
         {strike > 0 && <div style={{ position: "absolute", left: 0, top: 80, height: 5, borderRadius: 3, width: `${strike * 100}%`, background: RED, boxShadow: `0 0 16px ${RED}` }} />}
       </div>
-      <span style={{ fontSize: 44, fontWeight: 300, color: MUTED }}>м³</span>
+      <span style={{ fontSize: 40, fontWeight: 700, color: MUTED }}>м³</span>
     </div>
   </div>
 );
@@ -388,7 +389,7 @@ const Trips: React.FC = () => {
         <div style={{ height: 130, overflow: "hidden" }}>
           <div style={{ translate: `0 ${-(tw(s, [TRIPS[1].a, TRIPS[1].a + 0.4], [0, 1], INOUT) + tw(s, [TRIPS[2].a, TRIPS[2].a + 0.4], [0, 1], INOUT)) * 130}px` }}>
             {["1", "2", "3"].map((n, i) => (
-              <div key={n} style={{ ...NUM, fontSize: 130, height: 130, lineHeight: "130px", color: i > 0 ? ORANGE : WHITE }}>{n}</div>
+              <div key={n} style={{ ...NUM, fontSize: 116, height: 130, lineHeight: "130px", color: i > 0 ? ORANGE : WHITE }}>{n}</div>
             ))}
           </div>
         </div>
@@ -494,7 +495,8 @@ const Loop: React.FC = () => {
           const p = pos(st.a);
           const d = (((ang - st.a) % 360) + 360) % 360;
           const near = turn > 0.02 && fail === 0 ? Math.max(0, 1 - d / 60) : 0;
-          return <circle key={st.l} cx={p.x} cy={p.y} r={5 + 3 * near} fill={near > 0 ? WHITE : "rgba(255,255,255,0.4)"} opacity={(1 - out) * tw(s, [t + 0.2, t + 0.6], [0, 1])} />;
+          const head = Math.min(d, 360 - d) < 14 && turn > 0.02 ? 0 : 1;
+          return <circle key={st.l} cx={p.x} cy={p.y} r={4} fill={near > 0.3 ? ORANGE : "rgba(255,255,255,0.45)"} opacity={head * (1 - out) * tw(s, [t + 0.2, t + 0.6], [0, 1])} />;
         })}
       </svg>
       {STATUS.map((st, i) => {
@@ -504,14 +506,14 @@ const Loop: React.FC = () => {
         const k = tw(s, [t + 0.25 + i * 0.08, t + 0.75 + i * 0.08], [0, 1], EXPO) * (1 - out);
         const align = st.a === 0 ? "0 -50%" : st.a === 180 ? "-100% -50%" : st.a === -90 ? "-50% -100%" : "-50% 0";
         return (
-          <div key={st.l} style={{ position: "absolute", left: p.x, top: p.y, translate: align, opacity: k, fontFamily: FONT, fontSize: 21, fontWeight: 650, whiteSpace: "nowrap", color: near > 0.35 ? WHITE : "rgba(255,255,255,0.42)", textShadow: near > 0.35 ? "0 0 20px rgba(253,132,49,0.6)" : undefined }}>
+          <div key={st.l} style={{ position: "absolute", left: p.x, top: p.y, translate: align, opacity: k, fontFamily: FONT, fontSize: 21, fontWeight: 700, whiteSpace: "nowrap", color: near > 0.35 ? WHITE : "rgba(255,255,255,0.42)", textShadow: near > 0.35 ? "0 0 20px rgba(253,132,49,0.6)" : undefined }}>
             {st.l}
           </div>
         );
       })}
       {/* the days, in the middle */}
       <div style={{ position: "absolute", left: HX, top: LY, translate: "-50% -50%", textAlign: "center", opacity: center, scale: String(0.94 + 0.06 * center), fontFamily: FONT, whiteSpace: "nowrap" }}>
-        <div style={{ ...NUM, fontSize: 150, fontWeight: 200, color: fail > 0 ? RED : WHITE }}>{day}</div>
+        <div style={{ ...NUM, fontSize: 128, color: fail > 0 ? RED : WHITE }}>{day}</div>
         <div style={{ position: "relative", height: 26, marginTop: 6 }}>
           <div style={{ fontSize: 19, color: MUTED, opacity: 1 - fail }}>{lap > 1 ? "дней · второй круг" : "дней на согласовании"}</div>
           <div style={{ position: "absolute", inset: 0, fontSize: 17, fontWeight: 800, letterSpacing: "0.2em", color: RED, opacity: fail }}>АННУЛИРОВАНА</div>
@@ -533,6 +535,7 @@ const DOCS = [
 
 const Retype: React.FC = () => {
   const s = useSec();
+  const film = useFilmSec();
   const t = P[4];
   const o4 = O[3];
   const o = O[4];
@@ -549,7 +552,7 @@ const Retype: React.FC = () => {
   const split = tw(s, [t + 0.4, t + 1.0], [0, 1], EXPO);
   const merge = tw(s, [o, o + 0.4], [0, 1], INOUT);
   const shrink = tw(s, [o + 0.3, o + 0.65], [0, 1], INOUT);
-  const fall = tw(s, [o + 0.6, o + 0.95], [0, 1], IN);
+  const fall = tw(s, [o + 0.6, BEACON_AT], [0, 1], (x) => x * x);
   const lines = tw(s, [t + 0.3, t + 0.7], [0, 1]) * (1 - tw(s, [o, o + 0.2], [0, 1]));
   const ask = tw(s, [t + 3.0, t + 3.5], [0, 1], EXPO) * (1 - tw(s, [o, o + 0.2], [0, 1], IN));
   return (
@@ -562,11 +565,16 @@ const Retype: React.FC = () => {
         const done = n >= doc.name.length;
         const mark = tw(s, [t + 2.45 + i * 0.12, t + 2.85 + i * 0.12], [0, 1], INOUT);
         const isWin = i === 1 && shrink > 0;
-        const w = isWin ? lerp(DOC_W, 26, shrink) : DOC_W;
-        const h = isWin ? lerp(DOC_H, 36, shrink) : DOC_H;
+        // falling: it aims at the beacon window, which rises with the city
+        const bs = nearToScreen(s, film, BEACON.x, BEACON.y);
+        const fk = isWin ? fall : 0;
+        const w = isWin ? lerp(lerp(DOC_W, 26, shrink), BEACON.w * bs.push, fk) : DOC_W;
+        const h = isWin ? lerp(lerp(DOC_H, 36, shrink), BEACON.h * bs.push, fk) : DOC_H;
+        const cx = isWin ? lerp(HX, bs.x, fk) : HX + doc.dx * k;
+        const cy = isWin ? lerp(DOC_Y, bs.y, fk) - Math.sin(Math.PI * fk) * 40 : DOC_Y;
         const warm = isWin ? shrink : 0;
         return (
-          <div key={doc.d} style={{ position: "absolute", left: HX + doc.dx * k - w / 2, top: DOC_Y - h / 2 + fall * 340, width: w, height: h, borderRadius: isWin ? lerp(10, 3, shrink) : 10, transform: `perspective(1400px) rotateY(${doc.ry * k}deg) translateZ(${-70 * k * (i === 1 ? 0 : 1)}px)`, background: warm > 0 ? `rgb(${Math.round(lerp(245, 255, warm))},${Math.round(lerp(243, 178, warm))},${Math.round(lerp(238, 94, warm))})` : "#F5F3EE", boxShadow: warm > 0.3 ? `0 0 ${60 * warm}px ${20 * warm}px rgba(255,170,80,${0.6 * warm})` : "0 40px 80px -30px rgba(0,0,0,0.8)", overflow: "hidden", opacity: 1 - tw(fall, [0.6, 1], [0, 1]), zIndex: i === 1 ? 3 : 1, fontFamily: FONT }}>
+          <div key={doc.d} style={{ position: "absolute", left: cx - w / 2, top: cy - h / 2, width: w, height: h, borderRadius: isWin ? lerp(10, 3, shrink) : 10, transform: `perspective(1400px) rotateY(${doc.ry * k}deg) translateZ(${-70 * k * (i === 1 ? 0 : 1)}px)`, background: warm > 0 ? `rgb(${Math.round(lerp(245, 255, warm))},${Math.round(lerp(243, 178, warm))},${Math.round(lerp(238, 94, warm))})` : "#F5F3EE", boxShadow: warm > 0.3 ? `0 0 ${60 * warm}px ${20 * warm}px rgba(255,170,80,${0.6 * warm})` : "0 40px 80px -30px rgba(0,0,0,0.8)", overflow: "hidden", opacity: 1 - tw(s, [BEACON_AT, BEACON_AT + 0.1], [0, 1]), zIndex: i === 1 ? 3 : 1, fontFamily: FONT }}>
             <div style={{ position: "absolute", left: 22, top: 22, width: DOC_W - 44, color: "#1c1f33", opacity: lines }}>
               <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
                 <span style={{ fontSize: 22, fontWeight: 850, letterSpacing: "0.04em" }}>{doc.d}</span>
@@ -580,7 +588,7 @@ const Retype: React.FC = () => {
                   {!done && s > at0 && <span style={{ display: "inline-block", width: 2, height: 20, background: "#1c1f33", marginLeft: 2, verticalAlign: "middle", opacity: Math.floor(s * 4) % 2 }} />}
                 </span>
               </div>
-              <div style={{ marginTop: 20, ...NUM, fontSize: 54, fontWeight: 300, color: doc.bad && done ? "#D0344B" : "#1c1f33" }}>{done ? doc.q : ""}</div>
+              <div style={{ marginTop: 20, ...NUM, fontSize: 46, color: doc.bad && done ? "#D0344B" : "#1c1f33" }}>{done ? doc.q : ""}</div>
               {[0, 1].map((j) => (
                 <div key={j} style={{ height: 6, borderRadius: 9, background: "#1c1f33", opacity: 0.07, marginTop: 14, width: `${78 - j * 24}%` }} />
               ))}

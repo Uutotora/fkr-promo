@@ -2,7 +2,7 @@ import React from "react";
 import { AbsoluteFill } from "remotion";
 import { C, FONT } from "../theme";
 import { INOUT, TL, tw, useSec } from "../lib";
-import { AppWindow, HOME, Stage3D, focus, poseAt, type Pose } from "../components/AppWindow";
+import { AppWindow, Flashlight, HOME, Stage3D, focus, poseAt, type Pose } from "../components/AppWindow";
 import { Cursor } from "../components/Cursor";
 import { Dashboard } from "../screens/Dashboard";
 import { Eyebrow, Fade, Rise } from "../components/Type";
@@ -65,6 +65,7 @@ export const S4Dashboard: React.FC<{ morphIn?: boolean }> = ({ morphIn }) => {
         <AppWindow nav="dashboard" tabs={[{ id: "d", label: "Дашборд", icon: "dashboard", active: true }]}>
           <Dashboard cards={cards} map={d.mapPush - 0.2} clusters={d.clusters} clickCluster={d.clickCluster} highlightRow={d.clickYears} />
         </AppWindow>
+        <Flashlight x={880} y={720} rx={620} ry={360} k={tw(s, [25.2, 25.9], [0, 1], INOUT) * (1 - tw(s, [28.4, 29.2], [0, 1], INOUT))} />
         <div style={{ position: "absolute", inset: 0 }}>
           <Cursor keys={CURSOR_A} clicks={[d.clickYears, d.clickCluster]} scale={1 / (ent < 1 ? p0.s : pose.s)} show={[21.6, 31]} />
         </div>

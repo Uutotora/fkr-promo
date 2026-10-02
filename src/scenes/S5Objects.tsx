@@ -2,7 +2,7 @@ import React from "react";
 import { AbsoluteFill } from "remotion";
 import { C, FONT } from "../theme";
 import { EXPO, INOUT, TL, tw, useSec } from "../lib";
-import { AppWindow, HOME, SIDEBAR, Stage3D, TABBAR, focus, poseAt, type Pose, type Tab } from "../components/AppWindow";
+import { AppWindow, Flashlight, HOME, SIDEBAR, Stage3D, TABBAR, focus, poseAt, type Pose, type Tab } from "../components/AppWindow";
 import { Cursor } from "../components/Cursor";
 import { Dashboard } from "../screens/Dashboard";
 import { ObjectsList, ObjectCard } from "../screens/Objects";
@@ -96,6 +96,11 @@ export const S5Objects: React.FC = () => {
           )}
           {s >= o.open && <ObjectCard at={o.open} />}
         </AppWindow>
+        {(() => {
+          // the light follows the search: the field, then the house it found
+          const m = tw(s, [34.5, 35.15], [0, 1], INOUT);
+          return <Flashlight x={SEARCH.x + (ROW1.x + 300 - SEARCH.x) * m} y={SEARCH.y + 40 + (ROW1.y - SEARCH.y - 40) * m} rx={520 + 260 * m} ry={170 + 30 * m} k={tw(s, [32.55, 33.1], [0, 1], INOUT) * (1 - tw(s, [35.45, 35.95], [0, 1], INOUT))} />;
+        })()}
         <div style={{ position: "absolute", inset: 0 }}>
           <Cursor keys={CURSOR_B} clicks={[o.clickNav, o.clickSearch, o.clickRow]} scale={1 / pose.s} show={[29, 37.6]} />
         </div>

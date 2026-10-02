@@ -52,8 +52,8 @@ const BeatLabel: React.FC<{ at: number; out: number; title: string; sub: string 
   const o = tw(s, [out - 0.35, out], [0, 1], IN);
   return (
     <div style={{ position: "absolute", left: 0, right: 0, top: 300, textAlign: "center", opacity: k * (1 - o), translate: `0 ${(1 - k) * 24 - o * 20}px` }}>
-      <div style={{ fontSize: 40, fontWeight: 800, letterSpacing: "-0.02em", color: C.ink }}>{title}</div>
-      <div style={{ fontSize: 24, color: C.muted, fontWeight: 550, marginTop: 8 }}>{sub}</div>
+      <div style={{ fontSize: 50, fontWeight: 800, letterSpacing: "-0.025em", color: C.ink }}>{title}</div>
+      <div style={{ fontSize: 26, color: C.muted, fontWeight: 550, marginTop: 10 }}>{sub}</div>
     </div>
   );
 };
@@ -289,15 +289,15 @@ export const Effects3: React.FC = () => {
         const sumK = tw(s, [E3.sum + i * 0.04, E3.sum + 0.9 + i * 0.04], [0, 1], INOUT);
         const base = slot(i);
         // summary: a calm 3 × 2 grid with air between the cards
-        const gx = 960 + ((i % 3) - 1) * (380 + 28);
-        const gy = 690 + Math.floor(i / 3) * (124 + 26);
+        const gx = 960 + ((i % 3) - 1) * (440 + 28);
+        const gy = 680 + Math.floor(i / 3) * (150 + 26);
         const x = base.x + (gx - base.x) * sumK;
         const y = base.y + (gy - base.y) * sumK;
-        const w = RW + (380 - RW) * sumK;
-        const h = 92 + (124 - 92) * sumK;
+        const w = RW + (440 - RW) * sumK;
+        const h = 92 + (150 - 92) * sumK;
         return (
-          <div key={r.v} style={{ position: "absolute", left: x, top: y, translate: "-50% -50%", width: w, height: h, borderRadius: 20, background: "#fff", boxShadow: `0 20px 40px -24px rgba(0,2,48,0.35), 0 0 ${30 * Math.max(0, 1 - (s - RAIL_AT[i]) / 1.2)}px rgba(49,107,253,0.6)`, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", scale: String(Math.max(0, p)), opacity: 1 - railOut }}>
-            <div style={{ fontSize: 30 + 8 * sumK, fontWeight: 800, letterSpacing: "-0.03em", color: i === 5 ? C.blue : C.orange }}>{r.v}</div>
+          <div key={r.v} style={{ position: "absolute", left: x, top: y, translate: "-50% -50%", width: w, height: h, borderRadius: 20 + 6 * sumK, background: "#fff", boxShadow: `0 ${20 + 16 * sumK}px ${40 + 30 * sumK}px -24px rgba(0,2,48,0.35), 0 0 ${30 * Math.max(0, 1 - (s - RAIL_AT[i]) / 1.2)}px rgba(49,107,253,0.6)`, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", scale: String(Math.max(0, p)), opacity: 1 - railOut }}>
+            <div style={{ fontSize: 30 + 16 * sumK, fontWeight: 800, letterSpacing: "-0.03em", color: i === 5 ? C.blue : C.orange }}>{r.v}</div>
             <div style={{ fontSize: 16 + 3 * sumK, color: C.muted, fontWeight: 600, marginTop: 2 + 4 * sumK }}>{r.l}</div>
           </div>
         );

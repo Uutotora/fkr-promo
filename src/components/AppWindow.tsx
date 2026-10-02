@@ -229,6 +229,16 @@ export const AppWindow: React.FC<{
   </div>
 );
 
+/** Presentation light: the window dims softly around a point of interest (window coords).
+    Soft edges — it is light, never a frame. */
+export const Flashlight: React.FC<{ x: number; y: number; rx: number; ry: number; k: number }> = ({ x, y, rx, ry, k }) =>
+  k <= 0.01 ? null : (
+    <div style={{ position: "absolute", inset: 0, borderRadius: 26, overflow: "hidden", pointerEvents: "none" }}>
+      <div style={{ position: "absolute", inset: 0, background: `radial-gradient(ellipse ${rx}px ${ry}px at ${x}px ${y}px, rgba(8,12,40,0) 55%, rgba(8,12,40,${0.38 * k}) 100%)` }} />
+      <div style={{ position: "absolute", left: x - rx * 0.8, top: y - ry * 0.8, width: rx * 1.6, height: ry * 1.6, borderRadius: "50%", background: `radial-gradient(closest-side, rgba(49,107,253,${0.07 * k}), rgba(49,107,253,0))` }} />
+    </div>
+  );
+
 export type Pose = { x: number; y: number; s: number; rx: number; ry: number; rz?: number; o?: number; blur?: number };
 
 /** Interpolate poses over keyframes with a monotone cubic spline: the camera never stops

@@ -49,14 +49,39 @@ const ITEMS: Item[] = [
 
 const SWEEPS: { t: number; dark?: boolean; dir?: 1 | -1 }[] = [];
 
+/** Reading holds on the real film clock: [start, length]. */
+const HOLD_FILM = (() => {
+  let cum = 0;
+  return HOLDS.map((h) => {
+    const r: [number, number] = [h.at + cum, h.film];
+    cum += h.film - h.adv;
+    return r;
+  });
+})();
+/** While the story rests the camera keeps breathing: a slow push-in through each hold,
+    released gently afterwards — the frame never freezes. */
+const holdPush = (T: number) => {
+  let z = 0;
+  for (const [a, len] of HOLD_FILM) {
+    if (T < a) break;
+    const e = (u: number) => u * u * (3 - 2 * u);
+    const inK = e(Math.min(1, (T - a) / len));
+    const outK = T > a + len ? e(Math.min(1, (T - a - len) / 1.6)) : 0;
+    z = Math.max(z, inK * (1 - outK) * Math.min(1, len / 1.2));
+  }
+  return 1 + 0.016 * z;
+};
+
 /** Shallow depth of field on the city while the «как сейчас» object is in focus. */
 const dof = (s: number) => tw(s, [8.6, 9.6], [0, 3.5]) * (1 - tw(s, [32.3, 33.2], [0, 1]));
 
 export const Film3: React.FC<{ withAudio?: boolean }> = ({ withAudio = true }) => {
   // the v5 clock: real film time with the reading holds taken out
-  const s = applyHolds(useCurrentFrame() / FPS, HOLDS);
+  const T = useCurrentFrame() / FPS;
+  const s = applyHolds(T, HOLDS);
   return (
     <AbsoluteFill style={{ background: "#010210" }}>
+      <AbsoluteFill style={{ scale: String(holdPush(T)) }}>
       {ITEMS.map(({ at: [a, b], shift = 0, holds, C, fadeIn }, i) => {
         if (s < a || s >= b) return null;
         return (
@@ -71,6 +96,7 @@ export const Film3: React.FC<{ withAudio?: boolean }> = ({ withAudio = true }) =
         <Sweeps at={SWEEPS} />
         <Hud3 />
       </TimeShift>
+      </AbsoluteFill>
       <Grain opacity={0.035} />
       {withAudio ? <Audio src={staticFile("audio/v5/soundtrack.wav")} /> : null}
     </AbsoluteFill>

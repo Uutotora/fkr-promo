@@ -62,6 +62,8 @@ export const Hook: React.FC = () => {
   const slams = TL.hook.slams;
   return (
     <AbsoluteFill style={{ fontFamily: FONT }}>
+      {/* a pool of night behind the statements, so the numbers read over the lit city */}
+      <div style={{ position: "absolute", left: 960 - 1000, top: 330 - 420, width: 2000, height: 840, borderRadius: "50%", background: "radial-gradient(closest-side, rgba(1,2,18,0.62), rgba(1,2,18,0.35) 55%, rgba(1,2,18,0))", opacity: tw(s, [0.2, 1.0], [0, 1]) * (1 - tw(s, [7.5, 8.3], [0, 1])) }} />
       {STATS.map((st, i) => {
         const at = slams[i];
         const next = i < STATS.length - 1 ? slams[i + 1] : 7.6;

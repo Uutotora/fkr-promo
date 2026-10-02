@@ -1,11 +1,11 @@
 import React from "react";
 import { AbsoluteFill } from "remotion";
 import { C } from "../theme";
-import { useSec } from "../lib";
+import { useFilmSec } from "../lib";
 
 /** Light stage: warm-grey paper with slow drifting blue light and a faint dot grid. */
 export const LightStage: React.FC<{ glowX?: number; glowY?: number; intensity?: number }> = ({ glowX = 0.7, glowY = 0.45, intensity = 1 }) => {
-  const s = useSec();
+  const s = useFilmSec(); // ambient light keeps drifting through reading holds
   const dx = Math.sin(s * 0.35) * 80;
   const dy = Math.cos(s * 0.27) * 50;
   return (
@@ -51,7 +51,6 @@ export const NightStage: React.FC = () => (
 
 /** Fine film grain to keep large flat areas alive. */
 export const Grain: React.FC<{ opacity?: number }> = ({ opacity = 0.05 }) => {
-  const s = useSec();
   const seed = 3; // a still grain: animated noise reads as shaking on UI
   return (
     <AbsoluteFill style={{ pointerEvents: "none", opacity, mixBlendMode: "overlay" }}>
