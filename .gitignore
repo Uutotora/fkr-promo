@@ -1,11 +1,10 @@
+# dependencies — restore with `npm ci` and `pip install -r requirements.txt`
 node_modules/
 .venv/
 __pycache__/
+# full-quality renders live in GitHub Releases (files > 100 MB); a compressed preview is in preview/
 out/
-stills/
-capture/
-sc.json
-public/image.png
-sfxsrc/rm_*.wav
+# raw review frames (regenerate with `node stills.mjs`); contact sheets are kept
+stills/**/*.png
 *.log
 .DS_Store
