@@ -27,17 +27,18 @@ export const applyHolds = (t: number, holds: Hold[]) => {
   return t;
 };
 
-type Clock = { global: Hold[]; by: number; holds: Hold[] };
+/** `map` (v12): frame → story clock of the film (pace map); replaces `global` when given. */
+type Clock = { global: Hold[]; by: number; holds: Hold[]; map?: (frame: number) => number };
 const Shift = createContext<Clock>({ global: [], by: 0, holds: [] });
-/** Places a scene on the film clock: global reading holds → shift → the scene's own holds. */
-export const TimeShift: React.FC<{ by: number; holds?: Hold[]; global?: Hold[]; children: React.ReactNode }> = ({ by, holds = [], global = [], children }) =>
-  React.createElement(Shift.Provider, { value: { by, holds, global } }, children);
+/** Places a scene on the film clock: global reading holds (or a pace map) → shift → the scene's own holds. */
+export const TimeShift: React.FC<{ by: number; holds?: Hold[]; global?: Hold[]; map?: (frame: number) => number; children: React.ReactNode }> = ({ by, holds = [], global = [], map, children }) =>
+  React.createElement(Shift.Provider, { value: { by, holds, global, map } }, children);
 
 /** Current time in seconds on the scene's authored clock. */
 export const useSec = () => {
   const frame = useCurrentFrame();
-  const { global, by, holds } = useContext(Shift);
-  return applyHolds(applyHolds(frame / FPS, global) - by, holds);
+  const { global, by, holds, map } = useContext(Shift);
+  return applyHolds((map ? map(frame) : applyHolds(frame / FPS, global)) - by, holds);
 };
 
 /** Real film time, holds ignored: for ambient life (drifts, glows, idle motion) that should
