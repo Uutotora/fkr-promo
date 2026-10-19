@@ -81,13 +81,13 @@ export const TmcForm: React.FC<{ at: number; qtyClick: number; type: number[]; l
         <Label x={L + 486} y={124}>Дата поставки</Label>
         <Input x={L + 486} y={148} w={190} icon={<ICalendar size={17} color={C.muted} />}>08.10.2026</Input>
         <Label x={L + 692} y={124}>Поставщик</Label>
-        <Input x={L + 692} y={148} w={284}>ООО «Материалы города»</Input>
+        <Input x={L + 692} y={148} w={284}>АО «САНТЕХПРОМ»</Input>
         <div style={{ position: "absolute", left: L, top: 204, fontSize: 13.5, color: C.muted }}>УНОМ 18542 · ПКРД-002047-25 · поставка Д045-2026</div>
 
         <Label x={L} y={240}>Адрес доставки</Label>
         <Input x={L} y={264} w={470}>Площадка у 2-го подъезда</Input>
         <Label x={L + 486} y={240}>Грузополучатель</Label>
-        <Input x={L + 486} y={264} w={300}>ООО «Городские системы»</Input>
+        <Input x={L + 486} y={264} w={300}>Подрядная организация</Input>
         <Label x={L + 802} y={240}>Телефон</Label>
         <Input x={L + 802} y={264} w={174}>+7 495 000-00-00</Input>
 

@@ -163,13 +163,61 @@ export const OBJ_TABS = [
 export const objTabX = (i: number) => 30 + 8 + OBJ_TABS.slice(0, i).reduce((a, [, w]) => a + w + 4, 0) + OBJ_TABS[i][1] / 2;
 export const OBJ_TABS_Y = 26 + 92 + 18 + 28;
 
-const Field: React.FC<{ l: string; v: string; at: number; i: number }> = ({ l, v, at, i }) => {
+/** v12: where each passport value comes from (shown with `provAt`). */
+export const PROV: Record<string, string> = {
+  "Адрес": "Префектура", "УНОМ": "БТИ", "Округ / район": "Префектура", "Программа ремонта": "ИС РСКР",
+  "Год постройки": "БТИ", "Этажность / подъезды": "БТИ", "Количество квартир": "БТИ", "Общая площадь": "БТИ · изменено",
+  "Управляющая организация": "Префектура", "Техническое состояние": "Обследование ГАУ", "Объект культурного наследия": "Префектура", "Формирование фонда": "ИС РСКР",
+};
+
+/** History of one value: who changed it, when and why (v12). */
+const History: React.FC<{ k: number }> = ({ k }) => (
+  <div style={{ position: "absolute", right: "calc(100% + 28px)", top: -6, width: 470, padding: "18px 20px 16px", borderRadius: 20, background: "#fff", boxShadow: "0 30px 70px -20px rgba(0,2,48,0.35), 0 0 0 1px rgba(0,2,48,0.04)", opacity: k, translate: `0 ${(1 - k) * 12}px`, scale: String(0.97 + 0.03 * k), transformOrigin: "100% 20%", zIndex: 30, fontFamily: "inherit" }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 15, fontWeight: 700, color: C.ink }}>
+      <span style={{ width: 28, height: 28, borderRadius: 99, background: C.blue50, display: "grid", placeItems: "center", color: C.blue, fontSize: 14, fontWeight: 800 }}>i</span>
+      Общая площадь · история значения
+    </div>
+    {[
+      ["14.10.2026 · 14:32", "Инженер ГАУ", "9 812 → 9 850 м²", "по обмерам ПСД, версия 3"],
+      ["12.03.2026 · 09:05", "Загрузка из БТИ", "9 812 м²", "техпаспорт, лист 4"],
+    ].map(([d, who, v, why], j) => (
+      <div key={d} style={{ display: "flex", gap: 14, marginTop: 14, opacity: tw(k, [0.3 + j * 0.25, 0.7 + j * 0.25], [0, 1]) }}>
+        <div style={{ width: 10, display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 5 }}>
+          <span style={{ width: 10, height: 10, borderRadius: 99, background: j ? "#C9D3EE" : C.blue, boxShadow: j ? undefined : "0 0 12px rgba(49,107,253,0.6)" }} />
+          {j === 0 && <span style={{ flex: 1, width: 2, background: "#E4E8F3", marginTop: 4 }} />}
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ display: "flex", fontSize: 13.5, color: C.muted }}><span>{d}</span><span style={{ marginLeft: "auto", fontWeight: 650, color: C.ink2 }}>{who}</span></div>
+          <div style={{ fontSize: 17, fontWeight: 750, color: C.ink, marginTop: 3 }}>{v}</div>
+          <div style={{ fontSize: 13.5, color: C.muted, marginTop: 2 }}>{why}</div>
+        </div>
+      </div>
+    ))}
+  </div>
+);
+
+const Field: React.FC<{ l: string; v: string; at: number; i: number; provAt?: number; hover?: [number, number]; histAt?: number }> = ({ l, v, at, i, provAt, hover, histAt }) => {
   const s = useSec();
   const k = tw(s, [at + i * 0.035, at + 0.5 + i * 0.035], [0, 1], EXPO);
+  const pk = provAt === undefined ? 0 : tw(s, [provAt + i * 0.06, provAt + 0.5 + i * 0.06], [0, 1], EXPO);
+  const hk = hover ? tw(s, [hover[0], hover[0] + 0.3], [0, 1], EXPO) * (1 - tw(s, [hover[1], hover[1] + 0.35], [0, 1])) : 0;
+  const hist = histAt === undefined ? 0 : tw(s, [histAt, histAt + 0.55], [0, 1], EXPO) * (hover ? 1 - tw(s, [hover[1], hover[1] + 0.35], [0, 1]) : 1);
+  const src = PROV[l];
+  const changed = src?.includes("изменено");
   return (
-    <div style={{ padding: "13px 0", opacity: k, translate: `0 ${(1 - k) * 14}px` }}>
-      <div style={{ fontSize: 13.5, color: C.muted }}>{l}</div>
-      <div style={{ fontSize: 16.5, fontWeight: 650, marginTop: 5 }}>{v}</div>
+    <div style={{ position: "relative", padding: "13px 0", opacity: k, translate: `0 ${(1 - k) * 14}px`, zIndex: hist > 0 || hk > 0 ? 20 : undefined }}>
+      {hk > 0 && <div style={{ position: "absolute", inset: "2px -14px", borderRadius: 14, background: `rgba(49,107,253,${0.07 * hk})`, boxShadow: `0 0 0 ${1.5 * hk}px rgba(49,107,253,${0.18 * hk}), 0 10px 30px -12px rgba(49,107,253,${0.45 * hk})` }} />}
+      <div style={{ position: "relative" }}>
+        <div style={{ fontSize: 13.5, color: C.muted }}>{l}</div>
+        <div style={{ fontSize: 16.5, fontWeight: 650, marginTop: 5 }}>{v}</div>
+        {pk > 0 && src && (
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginTop: 7, padding: "3px 9px", borderRadius: 99, background: changed ? C.orange50 : C.blue50, color: changed ? "#C4520F" : C.blue, fontSize: 12.5, fontWeight: 700, opacity: pk, translate: `0 ${(1 - pk) * 6}px` }}>
+            <span style={{ width: 6, height: 6, borderRadius: 9, background: changed ? C.orange : C.blue }} />
+            {src}
+          </div>
+        )}
+      </div>
+      {hist > 0 && <History k={hist} />}
     </div>
   );
 };
@@ -224,7 +272,7 @@ export const Gantt: React.FC<{ bars: number[] }> = ({ bars }) => {
 };
 
 /** Object card. `at` — moment it opens (content staggers in). */
-export const ObjectCard: React.FC<{ at: number; view?: "passport" | "gantt"; ganttAt?: number; bars?: number[]; pressTab?: number }> = ({ at, view = "passport", ganttAt = 99, bars = [99, 99, 99], pressTab }) => {
+export const ObjectCard: React.FC<{ at: number; view?: "passport" | "gantt"; ganttAt?: number; bars?: number[]; pressTab?: number; provAt?: number; hover?: [number, number]; histAt?: number }> = ({ at, view = "passport", ganttAt = 99, bars = [99, 99, 99], pressTab, provAt, hover, histAt }) => {
   const s = useSec();
   const k = tw(s, [at, at + 0.7], [0, 1], EXPO);
   const gv = tw(s, [ganttAt, ganttAt + 0.35], [0, 1], EXPO);
@@ -342,7 +390,7 @@ export const ObjectCard: React.FC<{ at: number; view?: "passport" | "gantt"; gan
                 ["Объект культурного наследия", "Нет"],
                 ["Формирование фонда", "Региональный оператор"],
               ].map(([l, v], i) => (
-                <Field key={l} l={l} v={v} at={at + 0.25} i={i} />
+                <Field key={l} l={l} v={v} at={at + 0.25} i={i} provAt={provAt} hover={l === "Общая площадь" ? hover : undefined} histAt={l === "Общая площадь" ? histAt : undefined} />
               ))}
             </div>
           </Card>

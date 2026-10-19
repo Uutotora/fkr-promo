@@ -10,11 +10,11 @@ import { Dawn3 } from "../v3/Dawn3";
 import { Ai3 } from "../v3/Ai3";
 import { Market4 } from "../v3/Market4";
 import { Effects3 } from "../v3/Effects3";
-import { Hud3 } from "../v3/Hud3";
+import { Hud12, type Hud12Plan } from "./Hud12";
 import { S4Dashboard } from "../scenes/S4Dashboard";
-import { S5Objects } from "../scenes/S5Objects";
-import { S6Object } from "../scenes/S6Object";
-import { S7Tmc } from "../scenes/S7Tmc";
+import { Objects12, OBJ12_END } from "./Objects12";
+import { Cycle, CYCLE_END } from "./Cycle";
+import { Tmc12, PUSHES } from "./Tmc12";
 import { S8Sign } from "../scenes/S8Sign";
 import { S10Close } from "../scenes/S10Close";
 import { Grain } from "../components/Backdrop";
@@ -25,12 +25,28 @@ export const FILM12_FRAMES = FRAMES;
 export const FINAL12_FRAMES = FRAMES + Math.round(INTRO * FPS);
 
 const Dash = () => <S4Dashboard morphIn />;
-const Obj = () => <S6Object toTmc />;
-const Tmc = () => <S7Tmc fromSheet />;
 const Sign = () => <S8Sign fromWindow />;
 
 /** at: story range (s12) — legacy items give it on the v5 clock (`v5: true`) and are converted. */
 type Item = { at: [number, number]; v5?: boolean; shift?: number; holds?: Hold[]; C: React.FC; fadeIn?: number; dof?: boolean };
+
+/* v12 product chapters on the story clock (s12). Objects12 keeps the v9 local clock (30 → OBJ12_END),
+   Cycle runs 0 → CYCLE_END, Tmc12 keeps the v9 local clock (46.2 → 62.3, pushes added). */
+const OBJ_AT = s12of5(49);
+const CYC_AT = OBJ_AT + (OBJ12_END - 30);
+const TMC_AT = CYC_AT + CYCLE_END;
+const TMC_SHIFT = TMC_AT - 46.2;
+if (Math.abs(s12of5(65.2) - TMC_AT) > 0.02 || Math.abs(s12of5(75.7) - (TMC_SHIFT + 56.7 + (PUSHES.end - PUSHES.at))) > 0.02)
+  console.warn("pace inserts do not match the v12 chapters", s12of5(65.2), TMC_AT, s12of5(75.7), TMC_SHIFT + 56.7 + (PUSHES.end - PUSHES.at));
+
+const OBJ = (l: number) => OBJ_AT - 30 + l;
+const TMC = (l: number) => TMC_SHIFT + l;
+const HUD: Hud12Plan = {
+  from: s12of5(39.4),
+  to: s12of5(114.0),
+  ch: [["Программа", s12of5(39.3)], ["Объекты", OBJ_AT], ["Весь цикл", CYC_AT], ["ТМЦ", TMC_AT], ["ИИ", s12of5(76.0)], ["Маркетплейс", s12of5(95.0)], ["Подпись", s12of5(108.7)]],
+  hide: [[s12of5(43.45), s12of5(48.3)], [OBJ(32.45), OBJ(42.4)], [TMC(48.5), TMC(51.9)], [s12of5(81.8), s12of5(83.7)], [s12of5(84.9), s12of5(92.4)], [s12of5(97.9), s12of5(105.7)]],
+};
 
 const ITEMS: Item[] = [
   { at: [0, 39.45], v5: true, C: Moscow, dof: true },
@@ -38,9 +54,9 @@ const ITEMS: Item[] = [
   { at: [8, NOW7.end + 0.9], C: Now7 },
   { at: [38.4, 49.05], v5: true, shift: 19, C: Dash, fadeIn: 0.45 },
   { at: [33, 39.4], v5: true, shift: 9, C: Dawn3 },
-  { at: [49, 57.05], v5: true, shift: 19, C: S5Objects },
-  { at: [57, 65.3], v5: true, shift: 19, C: Obj },
-  { at: [65.2, 76.3], v5: true, shift: 19, holds: [{ at: 47.15, film: 1.02, adv: 0.02 }], C: Tmc },
+  { at: [OBJ_AT, CYC_AT + 0.05], shift: OBJ_AT - 30, C: Objects12 },
+  { at: [CYC_AT, TMC_AT + 0.1], shift: CYC_AT, C: Cycle },
+  { at: [TMC_AT, TMC_SHIFT + 62.3], shift: TMC_SHIFT, holds: [{ at: 47.15, film: 1.02, adv: 0.02 }], C: Tmc12 },
   { at: [75.7, 95.5], v5: true, shift: 10, C: Ai3 },
   { at: [95, 108.9], v5: true, shift: 1, holds: [{ at: 95.2, film: 1.52, adv: 0.02 }], C: Market4 },
   { at: [108.75, 114.8], v5: true, shift: 52.5, C: Sign },
@@ -83,8 +99,8 @@ export const Film12: React.FC<{ withAudio?: boolean }> = ({ withAudio = false })
             </AbsoluteFill>
           );
         })}
-        <TimeShift by={0} map={legacyMap}>
-          <Hud3 />
+        <TimeShift by={0} map={storyMap}>
+          <Hud12 plan={HUD} />
         </TimeShift>
       </AbsoluteFill>
       <Grain opacity={0.035} />
