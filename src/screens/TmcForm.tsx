@@ -49,6 +49,7 @@ export const TmcForm: React.FC<{ at: number; qtyClick: number; type: number[]; l
   const rk = tw(s, [reasonAt, reasonAt + 0.6], [0, 1], EXPO);
   const typedReason = reason.slice(0, Math.round(tw(s, [reasonAt + 0.25, reasonAt + 1.05], [0, reason.length], (t) => t)));
   const press = tw(s, [sendPress - 0.05, sendPress + 0.08, sendPress + 0.3], [0, 1, 0]);
+  const sendHover = tw(s, [sendPress - 0.55, sendPress - 0.2], [0, 1]) * (1 - tw(s, [sendPress + 0.3, sendPress + 0.7], [0, 1]));
   const L = 32;
   return (
     <>
@@ -185,14 +186,14 @@ export const TmcForm: React.FC<{ at: number; qtyClick: number; type: number[]; l
             width: 270,
             height: 48,
             borderRadius: 12,
-            background: C.blue,
             color: "#fff",
             display: "grid",
             placeItems: "center",
             fontWeight: 700,
             fontSize: 15.5,
-            scale: String(1 - press * 0.05),
-            boxShadow: `0 10px 24px -10px rgba(49,107,253,${0.6 + press * 0.4})`,
+            scale: String(1 - press * 0.05 + sendHover * 0.025),
+            boxShadow: `0 ${10 + sendHover * 6}px ${24 + sendHover * 16}px -10px rgba(49,107,253,${0.6 + press * 0.4}), 0 0 ${36 * sendHover}px rgba(49,107,253,${0.35 * sendHover})`,
+            background: sendHover > 0 ? `rgb(${Math.round(49 - 12 * sendHover)},${Math.round(107 - 12 * sendHover)},${Math.round(253 - 8 * sendHover)})` : C.blue,
           }}
         >
           Направить на проверку

@@ -20,6 +20,7 @@ INS = [
     [74.9, PUSH_EXT],                             # ТМЦ: pushes after the route
     [92.5, 100.2 - 84.5],                         # ИИ: every method (two bento pages), citizens' requests
     [104.45, 7.0],                                # маркет: the supplier's calendar
+    [125.0, 145.82 - 138.42],                     # эффект: Деньги / Время / Люди, returns of requests
 ]
 s12 = lambda t5: t5 + sum(d for x, d in INS if t5 > x + 1e-9)
 
@@ -58,16 +59,22 @@ H += [[AIL(84.6), 4.4], [AIL(89.0), 4.6], [AIL(95.0), 3.4], [AIL(97.1), 2.4], [A
 MK_SHIFT = s12(95) - 94.0
 MKL = lambda local: MK_SHIFT + local + (1.5 if local > 95.2 else 0)   # Market12 keeps the v9 scene hold at 95.2
 H += [[MKL(99.5), 2.2], [MKL(102.2), 2.4], [MKL(105.8), 1.8], [MKL(109.1), 2.6], [MKL(105.9 + 7.0), 1.8]]
-# legacy holds from v9 for the signature, effects, the mark
+# эффект (Effects12 clock = v9 local, s12 = local + EF_SHIFT): every number once it has counted, the summary
+EF_SHIFT = s12(114.5) - 112.0
+EFL = lambda local: EF_SHIFT + local
+H += [[EFL(114.9), 2.2], [EFL(118.9), 2.2], [EFL(122.7), 2.2], [EFL(126.5), 3.2], [EFL(130.3), 2.0], [EFL(134.2), 2.6], [EFL(138.0), 2.6], [EFL(141.7), 1.6], [EFL(143.6), 3.6]]
+# legacy holds from v9 for the signature and the mark
 src = open(os.path.join(ROOT, "src/v3/holds.ts")).read()
 RAW = [tuple(map(float, m)) for m in re.findall(r"\[([\d.]+),\s*([\d.]+)\]", src.split("const RAW")[1].split("];")[0])]
 for at, e in RAW:
-    if at >= 108.0:
+    if 108.0 <= at < 114.5 or at >= 140.9:
         H.append([round(s12(at), 3), round(e * 1.8 + 0.5, 2)])
 
+HOLD_K = 0.8   # global trim of reading holds (the hook keeps its own)
+H = [[at, e if at < 8 else round(e * HOLD_K, 2)] for at, e in H]
 H.sort()
 plan = {
-    "fps": 60, "rate": 0.86, "ramp": 0.45, "blend": 0.8,
+    "fps": 60, "rate": 0.9, "ramp": 0.38, "blend": 0.8,
     "end": round(s12(148.5), 3),
     "inserts": INS,
     "segments": [[0, 8.05, 1.0]],

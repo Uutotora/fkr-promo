@@ -50,8 +50,12 @@ export const Cursor: React.FC<{
   const lean = Math.max(-9, Math.min(9, vx / 260));
 
   let press = 0;
+  let hover = 0;
   const blooms: React.ReactNode[] = [];
   clicks.forEach((c, i) => {
+    // hover: the target answers before the press — a soft light gathers under the pointer
+    const hd = c - s;
+    if (hd > -0.25 && hd < 0.6) hover = Math.max(hover, hd > 0 ? 1 - hd / 0.6 : 1 + hd / 0.25);
     const d = s - c;
     if (d > -0.08 && d < 0.2) press = Math.max(press, 1 - Math.abs(d - 0.03) / 0.13);
     if (d >= 0 && d < 0.8) {
@@ -77,8 +81,26 @@ export const Cursor: React.FC<{
     }
   });
 
+  const hk = hover * hover * (3 - 2 * hover);
   return (
     <>
+      {hk > 0.01 && (
+        <div
+          style={{
+            position: "absolute",
+            left: x,
+            top: y,
+            width: 150 * scale,
+            height: 150 * scale,
+            marginLeft: -75 * scale,
+            marginTop: -75 * scale,
+            borderRadius: 999,
+            background: "radial-gradient(closest-side, rgba(49,107,253,0.22), rgba(49,107,253,0.08) 55%, rgba(49,107,253,0))",
+            scale: String(0.7 + 0.3 * hk),
+            opacity: hk * vis,
+          }}
+        />
+      )}
       {blooms}
       <div
         style={{

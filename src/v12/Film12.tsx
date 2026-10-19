@@ -9,7 +9,7 @@ import { Now7, NOW7 } from "./Now7";
 import { Dawn3 } from "../v3/Dawn3";
 import { Ai12 } from "./Ai12";
 import { Market12, CAL } from "./Market12";
-import { Effects3 } from "../v3/Effects3";
+import { Effects12, EFF_EXT } from "./Effects12";
 import { Hud12, type Hud12Plan } from "./Hud12";
 import { S4Dashboard } from "../scenes/S4Dashboard";
 import { Objects12, OBJ12_END } from "./Objects12";
@@ -41,6 +41,7 @@ if (Math.abs(s12of5(65.2) - TMC_AT) > 0.02 || Math.abs(s12of5(75.7) - (TMC_SHIFT
 
 const AI_SHIFT = s12of5(75.7) - 65.7;
 const MK_SHIFT = s12of5(95) - 94.0;
+const EF_SHIFT = s12of5(114.5) - 112.0;
 const OBJ = (l: number) => OBJ_AT - 30 + l;
 const TMC = (l: number) => TMC_SHIFT + l + (l > 47.15 ? 1.0 : 0);
 const MKL = (l: number) => MK_SHIFT + l + (l > 95.2 ? 1.5 : 0);
@@ -63,7 +64,7 @@ const ITEMS: Item[] = [
   { at: [s12of5(75.7), AI_SHIFT + 101.5], shift: AI_SHIFT, C: Ai12 },
   { at: [s12of5(95), MK_SHIFT + 107.9 + CAL.ext], shift: MK_SHIFT, holds: [{ at: 95.2, film: 1.52, adv: 0.02 }], C: Market12 },
   { at: [108.75, 114.8], v5: true, shift: 52.5, C: Sign },
-  { at: [114.5, 141], v5: true, shift: 2.5, C: Effects3 },
+  { at: [s12of5(114.5), EF_SHIFT + 138.5 + EFF_EXT], shift: EF_SHIFT, C: Effects12 },
   { at: [140.92, 148.5], v5: true, shift: 72.5, C: S10Close },
 ];
 
