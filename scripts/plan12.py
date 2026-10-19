@@ -70,14 +70,41 @@ for at, e in RAW:
     if 108.0 <= at < 114.5 or at >= 140.9:
         H.append([round(s12(at), 3), round(e * 1.8 + 0.5, 2)])
 
+# ---- camera flights: each move of the app-window camera (and every morph) plays slower than the rest
+FLY = 0.7
+SEG = []
+def fly(a, b, r=FLY, pad=0.15):
+    SEG.append([round(a - pad, 3), round(b + pad, 3), r])
+# «как сейчас»: the morph from one problem to the next
+for p in [9.0, 13.8, 18.6, 23.4, 28.2, 33.0, 37.8][1:] + [42.6]:
+    fly(p - 0.45, p + 0.4, 0.8)
+# dawn → dashboard (logo frame becomes the window), the map zoom in / out
+fly(s12(38.75), s12(39.75), 0.75)
+fly(s12(43.4), s12(44.3)); fly(s12(47.3), s12(48.5))
+# objects: to the search, to the passport, back home
+fly(OBJ(31.9), OBJ(32.6)); fly(OBJ(37.1), OBJ(38.1)); fly(OBJ(42.3), OBJ(43.3))
+# the cycle: the window becomes the card; the push opens into the request window
+fly(CYC(0.0), CYC(0.9), 0.75); fly(CYC(9.24), CYC(10.1), 0.75)
+# ТМЦ: arrive, zoom to the quantity, to the reason, the window leaves for the route
+fly(TMC(46.2), TMC(46.8), 0.75); fly(TMC(47.3), TMC(47.95)); fly(TMC(49.4), TMC(50.1)); fly(TMC(50.6), TMC(51.3))
+# ИИ: the attention camera on the answer and on the document
+fly(AIL(71.8), AIL(72.5)); fly(AIL(73.2), AIL(73.8)); fly(AIL(75.0), AIL(75.5)); fly(AIL(90.6), AIL(91.35), 0.75); fly(AIL(98.6), AIL(99.3), 0.75); fly(AIL(100.2), AIL(100.82), 0.75)
+# маркет: arrive, the whole shopping path, to the calendar and back, into the signature
+fly(MKL(94.15), MKL(94.8), 0.75); fly(MKL(95.4), MKL(102.8), 0.8); fly(MKL(102.8), MKL(104.2))
+fly(MKL(103.4 + 7.0 - 0.6), MKL(103.6 + 7.0)); fly(MKL(105.3 + 7.0), MKL(106.15 + 7.0))
+# эффект: every number flies into the rail
+for l in [115.8, 119.35, 123.15, 127.15, 131.0, 134.75, 138.55, 142.15]:
+    fly(EFL(l - 0.6), EFL(l + 0.05), 0.75)
+fly(EFL(142.4), EFL(143.3), 0.75); fly(EFL(144.9), EFL(145.82), 0.75)
+
 HOLD_K = 0.8   # global trim of reading holds (the hook keeps its own)
 H = [[at, e if at < 8 else round(e * HOLD_K, 2)] for at, e in H]
 H.sort()
 plan = {
-    "fps": 60, "rate": 0.9, "ramp": 0.38, "blend": 0.8,
+    "fps": 60, "rate": 0.9, "ramp": 0.38, "blend": 0.35,
     "end": round(s12(148.5), 3),
     "inserts": INS,
-    "segments": [[0, 8.05, 1.0]],
+    "segments": [[0, 8.05, 1.0]] + SEG,
     "holds": H,
 }
 json.dump(plan, open(os.path.join(ROOT, "src/v12/pace_plan.json"), "w"), indent=1)

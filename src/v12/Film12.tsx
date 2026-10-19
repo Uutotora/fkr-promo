@@ -49,7 +49,7 @@ const HUD: Hud12Plan = {
   from: s12of5(39.4),
   to: s12of5(114.0),
   ch: [["Программа", s12of5(39.3)], ["Объекты", OBJ_AT], ["Весь цикл", CYC_AT], ["ТМЦ", TMC_AT], ["ИИ", AI_SHIFT + 66.0], ["Маркетплейс", s12of5(95.0)], ["Подпись", s12of5(108.7)]],
-  hide: [[s12of5(43.45), s12of5(48.3)], [OBJ(32.45), OBJ(42.4)], [TMC(48.5), TMC(51.9)], [AI_SHIFT + 71.8, AI_SHIFT + 73.7], [AI_SHIFT + 74.9, AI_SHIFT + 101.2], [MKL(96.9), MKL(102.9)], [MKL(103.3), MKL(103.4 + CAL.ext + 0.2)]],
+  hide: [[s12of5(43.45), s12of5(48.3)], [OBJ(32.45), OBJ(42.4)], [CYC_AT + 7.1, CYC_AT + CYCLE_END], [TMC(48.5), TMC(51.9)], [AI_SHIFT + 71.8, AI_SHIFT + 73.7], [AI_SHIFT + 74.9, AI_SHIFT + 101.2], [MKL(96.9), MKL(102.9)], [MKL(103.3), MKL(103.4 + CAL.ext + 0.2)]],
 };
 
 const ITEMS: Item[] = [

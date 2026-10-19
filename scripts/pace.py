@@ -54,7 +54,11 @@ class Pace:
             # next hold: decelerate so that the story stops exactly at `at`
             if hi < len(holds):
                 at, extra = holds[hi]
+                # decelerate from the speed we actually have when the ramp starts (no step in speed)
                 r = base(at)
+                for _ in range(4):
+                    start = at - r * tau / 2
+                    r = base(start)
                 start = at - r * tau / 2
                 if s >= start - 1e-9:
                     # decel: v = r (1 - ss(u)), covers r*tau/2 of story → lands on `at`
@@ -75,7 +79,7 @@ class Pace:
                         s = at + CREEP * ss(u)
                         Ts.append(T); Ss.append(s)
                     hold_film.append([hs, extra])
-                    r2 = base(s)
+                    r2 = base(s + r * tau / 2)
                     s1, T1 = s, T
                     n = max(2, int(round(tau / dt)))
                     for i in range(1, n + 1):
@@ -129,6 +133,7 @@ if __name__ == "__main__":
                "s": [round(float(v), 5) for v in s]}, open(OUT, "w"), separators=(",", ":"))
     sp = np.diff(s) * P.fps
     print(f"story {P.end:.2f} s → film {P.duration:.2f} s ({len(s)} frames); holds {len(P.holds)} (+{sum(e for _, e in P.holds):.1f} s)")
-    print(f"story speed: min {sp.min():.3f}, max {sp.max():.3f}; max change per frame {np.abs(np.diff(sp)).max():.4f}")
+    dsp = np.abs(np.diff(sp))
+    print(f"story speed: min {sp.min():.3f}, max {sp.max():.3f}; max change per frame {dsp.max():.4f} at film {np.argmax(dsp) / P.fps:.2f} s")
     for t in sys.argv[1:]:
         print(t, "→", round(P.film(float(t)), 3))

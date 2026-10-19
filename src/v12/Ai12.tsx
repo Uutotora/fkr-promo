@@ -268,7 +268,7 @@ export const Ai12: React.FC = () => {
                   {/* the scanned document */}
                   <div style={{ position: "relative", width: 430, height: 300, background: "#fff", borderRadius: 14, boxShadow: "0 24px 50px -24px rgba(0,2,48,0.35), 0 0 0 1px rgba(0,2,48,0.06)", padding: 22, boxSizing: "border-box", overflow: "hidden", opacity: tw(s, [AI.send2 + 0.4, AI.send2 + 0.8], [0, 1]) }}>
                     <div style={{ fontSize: 15, fontWeight: 800, letterSpacing: "0.04em" }}>УНИВЕРСАЛЬНЫЙ ПЕРЕДАТОЧНЫЙ ДОКУМЕНТ № 418</div>
-                    <div style={{ fontSize: 12.5, color: C.muted, marginTop: 6 }}>Продавец: ООО «Материалы города» · Покупатель: ФКР Москвы</div>
+                    <div style={{ fontSize: 12.5, color: C.muted, marginTop: 6 }}>Продавец: АО «САНТЕХПРОМ» · Покупатель: ФКР Москвы</div>
                     {[
                       ["Радиатор БМ 10 секций", "100 шт.", "Д015-2025"],
                       ["Доставка до объекта", "1 усл.", "—"],
