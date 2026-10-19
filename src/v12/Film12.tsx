@@ -3,9 +3,9 @@ import { AbsoluteFill, Sequence, staticFile, useCurrentFrame } from "remotion";
 import { Audio } from "@remotion/media";
 import "../fonts";
 import { FPS, TimeShift, tw, type Hold } from "../lib";
-import { Moscow } from "../v3/Moscow";
+import { Moscow } from "./Moscow12";
 import { Hook } from "../v2/Hook";
-import { Now5 } from "../v3/Now5";
+import { Now7, NOW7 } from "./Now7";
 import { Dawn3 } from "../v3/Dawn3";
 import { Ai3 } from "../v3/Ai3";
 import { Market4 } from "../v3/Market4";
@@ -35,7 +35,7 @@ type Item = { at: [number, number]; v5?: boolean; shift?: number; holds?: Hold[]
 const ITEMS: Item[] = [
   { at: [0, 39.45], v5: true, C: Moscow, dof: true },
   { at: [0, 8.2], v5: true, C: Hook },
-  { at: [8, 33.6], v5: true, C: Now5 },
+  { at: [8, NOW7.end + 0.9], C: Now7 },
   { at: [38.4, 49.05], v5: true, shift: 19, C: Dash, fadeIn: 0.45 },
   { at: [33, 39.4], v5: true, shift: 9, C: Dawn3 },
   { at: [49, 57.05], v5: true, shift: 19, C: S5Objects },

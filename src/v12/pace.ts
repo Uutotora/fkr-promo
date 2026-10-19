@@ -14,3 +14,15 @@ export const to5 = (s12: number) => applyHolds(s12, INSERT_HOLDS);
 export const s12of5 = (t5: number) => t5 + PACE.inserts.reduce((a, [x, d]) => a + (t5 > x + 1e-9 ? d : 0), 0);
 export const legacyMap = (frame: number) => to5(storyAt(frame));
 export const storyMap = (frame: number) => storyAt(frame);
+
+/** Film time (s, after the logo card) at which the story reaches s12 — inverse of storyAt. */
+export const filmOfStory = (s12: number) => {
+  let lo = 0, hi = FRAMES - 1;
+  if (s12 <= PACE.s[0]) return 0;
+  if (s12 >= PACE.s[hi]) return hi / PACE.fps;
+  while (hi - lo > 1) { const m = (lo + hi) >> 1; if (PACE.s[m] < s12) lo = m; else hi = m; }
+  const k = (s12 - PACE.s[lo]) / Math.max(1e-9, PACE.s[hi] - PACE.s[lo]);
+  return (lo + k) / PACE.fps;
+};
+/** Ambient city time: real film time, slowed so the parallax drift stays where v9 had it. */
+export const AMB = 0.72;
