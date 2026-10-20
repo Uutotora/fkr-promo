@@ -8,3 +8,6 @@ out/
 stills/**/*.png
 *.log
 .DS_Store
+
+# v13 live plates (large, regenerated from ИИ_промо/v13)
+public/v13/
