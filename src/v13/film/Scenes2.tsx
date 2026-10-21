@@ -4,8 +4,8 @@ import { C, FONT } from "../../theme";
 import { clamp01, easeInOut, easeOut, ramp } from "../geom";
 import { project } from "../MoscowMap";
 import { Edit, ProtoFrame, q, qa } from "../ProtoFrame";
-import { LiveInsert, Track } from "./Insert";
-import { Caption, CamKey, Pointer, Super, ToPin, UICam } from "./Kit";
+import { LiveInsert, Look, PinMorph, Track } from "./Insert";
+import { Caption, CamKey, FromPin, Pointer, Super, ToPin, UICam } from "./Kit";
 import { Lockup } from "./Logo13";
 import { camAt, Comet, MapStage, Objects, Pin, RouteLine } from "./MapStage";
 import { PLACES, ROUTES } from "./places";
@@ -22,7 +22,10 @@ const pinAt = (id: keyof typeof PLACES, sec: number): [number, number] => projec
 const K = (s: number, x: number, y: number, z: number): CamKey => [f(s), x, y, z];
 const P = (s: number, x: number, y: number): [number, number, number] => [f(s), x, y];
 
-/** A UI scene: a sequence with a camera over one prototype screen. */
+/** A UI scene: a sequence with a camera over one prototype screen.
+    Page changes inside the app cross-dissolve: the outgoing screen stays `hold`
+    seconds past `b` while the incoming one fades in over `xin`; the incoming
+    camera starts where the outgoing one stopped. */
 const Screen: React.FC<{
   a: number;
   b: number;
@@ -35,8 +38,15 @@ const Screen: React.FC<{
   clicks?: number[];
   over?: React.ReactNode; // UI-space overlays (move with the camera)
   top?: React.ReactNode; // frame-space overlays (captions)
-  pin?: { id: keyof typeof PLACES; a: number; b: number };
-}> = ({ a, b, w, h, snap, keys, edit, pointer, clicks, over, top, pin }) => {
+  pin?: { id?: keyof typeof PLACES; xy?: [number, number]; look?: Look; a: number; b: number }; // fold into a map pin or another shape
+  open?: { id: keyof typeof PLACES; a: number; b: number }; // grow out of a map pin
+  xin?: number;
+  hold?: number;
+}> = ({ a, b, w, h, snap, keys, edit, pointer, clicks, over, top, pin, open, xin = 0, hold = 0 }) => {
+  const fr = useCurrentFrame();
+  // a folding screen paints over the map that is already laid out under it
+  const folding = pin && fr >= f(pin.a);
+  const fade = xin > 0 ? easeInOut(ramp(fr, f(a), f(a + xin))) : 1;
   const body = (
     <AbsoluteFill>
       <UICam w={w} h={h} keys={keys} start={f(a)}>
@@ -47,14 +57,21 @@ const Screen: React.FC<{
       {top}
     </AbsoluteFill>
   );
+  const opened = open ? (
+    <FromPin a={f(open.a)} b={f(open.b)} pin={(t) => pinAt(open.id, t)} start={f(a)}>
+      {body}
+    </FromPin>
+  ) : (
+    body
+  );
   return (
-    <Sequence from={f(a)} durationInFrames={f(b) - f(a)}>
+    <Sequence from={f(a)} durationInFrames={f(b + hold) - f(a)} style={{ zIndex: folding ? 3 : undefined, opacity: fade }}>
       {pin ? (
-        <ToPin a={f(pin.a)} b={f(pin.b)} pin={pinAt(pin.id, pin.b)} start={f(a)}>
-          {body}
+        <ToPin a={f(pin.a)} b={f(pin.b)} pin={pin.xy ?? ((t) => pinAt(pin.id!, t))} look={pin.look} start={f(a)}>
+          {opened}
         </ToPin>
       ) : (
-        body
+        opened
       )}
     </Sequence>
   );
@@ -260,39 +277,52 @@ const citizenEdit: Edit = (doc, fr) => {
   install(doc, CITIZEN);
   for (let i = 0; i < 5; i++) {
     const e = q(doc, "#f" + i);
-    if (e) e.style.opacity = String(easeOut(ramp(fr, f(221.8 + i * 0.35), f(222.2 + i * 0.35))));
+    if (e) e.style.opacity = String(easeOut(ramp(fr, f(222.3 + i * 0.35), f(222.7 + i * 0.35))));
   }
   const r = q(doc, "#reply");
-  if (r) r.style.opacity = String(easeOut(ramp(fr, f(224.4), f(225.0))));
+  if (r) r.style.opacity = String(easeOut(ramp(fr, f(224.9), f(225.5))));
 };
 
 /* ---------- route strip that becomes the question field ---------- */
 
 const ROUTE = ["Заявка", "ТУ ГАУ", "УРО ГАУ", "Экономист", "Диадок", "Поставщик", "Поставка", "ТТН", "М-15"];
+const ROUTE_GAP = 196;
+/** The М-15 circle: the signed screen folds into it, and it grows into the question field. */
+const ROUTE_LAST: [number, number] = [960 + ((ROUTE.length - 1) * ROUTE_GAP) / 2, 542];
+/** …and its look: a 48 px green circle, the screen folds into exactly that. */
+const ROUTE_DOT: Look = { size: 48, r: 24, rim: 0, winR: 24, color: C.green };
+/** The chat screen's question field in frame px at its first camera (UI 297,637 1258×52 at 1.2×). */
+const ASK = { x: 960 + (297 - 800) * 1.2, y: 540 + (637.3 - 450) * 1.2, w: 1258 * 1.2, h: 52 * 1.2, r: 14 * 1.2, pad: 18 * 1.2, font: 15 * 1.2 };
 const RouteToChat: React.FC = () => {
   const fr = useCurrentFrame() + f(194.4);
   const n = ROUTE.length;
-  const gap = 196;
+  const gap = ROUTE_GAP;
   const x0 = 960 - ((n - 1) * gap) / 2;
   const morph = easeInOut(ramp(fr, f(196.6), f(198.4)));
+  // the gray ground gives way to the assistant screen laid out underneath
+  const ground = 1 - easeInOut(ramp(fr, f(197.7), f(198.35)));
   return (
-    <AbsoluteFill style={{ background: "#F3F3F3", fontFamily: FONT }}>
+    <AbsoluteFill style={{ background: `rgba(243,243,243,${ground})`, fontFamily: FONT }}>
       <div style={{ position: "absolute", left: x0, right: x0, top: 540, height: 4, background: C.line, opacity: 1 - morph }} />
-      <div style={{ position: "absolute", left: x0, top: 540, height: 4, width: (n - 1) * gap * easeInOut(ramp(fr, f(194.6), f(196.2))), background: C.green, opacity: 1 - morph }} />
+      <div style={{ position: "absolute", left: x0, top: 540, height: 4, width: (n - 1) * gap * easeInOut(ramp(fr, f(195.0), f(196.4))), background: C.green, opacity: 1 - morph }} />
       {ROUTE.map((r, i) => {
-        const done = fr >= f(194.6 + i * 0.17);
         const last = i === n - 1;
+        const done = fr >= f(last ? 195.1 : 195.0 + i * 0.16);
         const cx = x0 + i * gap;
         if (last) {
           // the last circle grows into the question field (ТМЦ → ИИ morph)
-          const w = 48 + (1240 - 48) * morph;
-          const h = 48 + (64 - 48) * morph;
-          const x = cx + (960 - cx) * morph;
-          const y = 542 + (820 - 542) * morph;
+          const w = 48 + (ASK.w - 48) * morph;
+          const h = 48 + (ASK.h - 48) * morph;
+          const x = cx + (ASK.x + ASK.w / 2 - cx) * morph;
+          const y = 542 + (ASK.y + ASK.h / 2 - 542) * morph;
+          const field = morph > 0.4;
           return (
-            <div key={i} style={{ position: "absolute", left: x - w / 2, top: y - h / 2, width: w, height: h, borderRadius: 24 - 8 * morph, background: morph > 0.4 ? "#fff" : done ? C.green : "#fff", boxShadow: `inset 0 0 0 ${morph > 0.4 ? 1 : 0}px ${C.line}`, display: "flex", alignItems: "center", padding: morph > 0.6 ? "0 22px" : 0, justifyContent: morph > 0.6 ? "flex-start" : "center", color: morph > 0.6 ? C.faint : "#fff", fontSize: 20, fontWeight: 500, overflow: "hidden", whiteSpace: "nowrap" }}>
+            <React.Fragment key={i}>
+            <div style={{ position: "absolute", left: cx, top: 582, transform: "translateX(-50%)", whiteSpace: "nowrap", color: C.ink2, fontSize: 24, fontWeight: 700, opacity: 1 - morph }}>{r}</div>
+            <div style={{ position: "absolute", left: x - w / 2, top: y - h / 2, width: w, height: h, boxSizing: "border-box", borderRadius: 24 + (ASK.r - 24) * morph, background: field ? "#fff" : done ? C.green : "#fff", border: field ? "1.2px solid #D6D6DE" : "none", display: "flex", alignItems: "center", padding: morph > 0.6 ? `0 ${ASK.pad}px` : 0, justifyContent: morph > 0.6 ? "flex-start" : "center", color: morph > 0.6 ? C.faint : "#fff", fontSize: morph > 0.6 ? ASK.font : 24, fontWeight: morph > 0.6 ? 400 : 700, overflow: "hidden", whiteSpace: "nowrap" }}>
               {morph > 0.6 ? <span style={{ opacity: ramp(fr, f(197.6), f(198.2)) }}>Спросите о заявке, договоре или документе…</span> : done ? "✓" : ""}
             </div>
+            </React.Fragment>
           );
         }
         return (
@@ -302,7 +332,7 @@ const RouteToChat: React.FC = () => {
           </div>
         );
       })}
-      <Caption a={f(194.8) - f(194.4)} b={f(196.8) - f(194.4)} light>
+      <Caption a={f(195.2) - f(194.4)} b={f(196.9) - f(194.4)} light>
         Каждый шаг виден — от заявки до подписи
       </Caption>
     </AbsoluteFill>
@@ -362,6 +392,7 @@ const All: React.FC = () => {
         keys={[K(88.6, 800, 450, 1), K(89.6, 800, 450, 1), K(91.2, 760, 250, 1.6), K(93.6, 760, 250, 1.6), K(95.2, 1040, 640, 1.35)]}
         pointer={[P(88.6, 1000, 560), P(90.6, 470, 260), P(92.6, 1330, 292), P(94.8, 840, 700), P(96.6, 802, 880)]}
         clicks={[96.8]}
+        hold={0.3}
         top={<Caption a={f(89.4) - f(88.6)} b={f(96.8) - f(88.6)}>Вся программа — на одном экране</Caption>}
       />
       {/* Фонд · объекты */}
@@ -372,9 +403,11 @@ const All: React.FC = () => {
         h={900}
         snap="objects"
         edit={objectsEdit}
-        keys={[K(97.2, 800, 450, 1), K(97.9, 840, 230, 1.35), K(103.8, 820, 250, 1.35)]}
+        keys={[K(97.2, 1040, 640, 1.35), K(98.0, 840, 230, 1.35), K(103.8, 820, 250, 1.35)]}
         pointer={[P(97.2, 802, 880), P(97.8, 1200, 92), P(100.8, 390, 241), P(103.2, 382, 242)]}
         clicks={[97.85, 103.3]}
+        xin={0.3}
+        hold={0.3}
         top={<Caption a={f(98.2) - f(97.2)} b={f(103.6) - f(97.2)}>Поиск по адресу, УНОМ, подрядчику и договору</Caption>}
       />
       {/* Фонд · карточка дома */}
@@ -385,8 +418,10 @@ const All: React.FC = () => {
         h={900}
         snap="passport"
         edit={passportEdit}
-        keys={[K(103.8, 800, 450, 1), K(104.6, 760, 330, 1.35), K(106.4, 1180, 470, 1.75), K(111.0, 1180, 470, 1.75), K(112.2, 900, 330, 1.3)]}
+        keys={[K(103.8, 820, 250, 1.35), K(104.6, 760, 330, 1.35), K(106.4, 1180, 470, 1.75), K(111.0, 1180, 470, 1.75), K(112.2, 900, 330, 1.3)]}
         pointer={[P(103.8, 382, 242), P(106.4, 1335, 497), P(111.6, 1340, 500)]}
+        xin={0.3}
+        hold={0.3}
         over={<ProvenancePopover />}
         top={
           <>
@@ -407,8 +442,11 @@ const All: React.FC = () => {
             w={1600}
             h={900}
             snap={snap}
-            keys={[K(112.2, 820, 340, 1.28), K(119.6, 820, 340, 1.28)]}
-            pointer={[P(a, 600 + i * 70, 183), P(a + 0.7, 640 + i * 70, 185)]}
+            keys={[K(112.2, 900, 330, 1.3), K(113.0, 820, 340, 1.28), K(119.6, 820, 340, 1.28)]}
+            pointer={[i === 0 ? P(a, 1340, 500) : P(a, 570 + i * 70, 185), P(a + 0.7, 640 + i * 70, 185)]}
+            clicks={i < TABS.length - 1 ? [a + 0.85] : []}
+            xin={i === 0 ? 0.3 : 0.15}
+            hold={i === TABS.length - 1 ? 0 : 0.15}
             pin={i === TABS.length - 1 ? { id: "fund", a: 118.6, b: 119.6 } : undefined}
             over={
               i === TABS.length - 1 ? (
@@ -423,7 +461,7 @@ const All: React.FC = () => {
       {sec >= 112.2 && sec < 119.4 && <Caption a={f(112.4)} b={f(117.0)}>От программы до оплаты — в одной системе</Caption>}
       {sec >= 112.2 && sec < 119.4 && (
         <div style={{ position: "absolute", right: 96, bottom: 96, fontFamily: FONT, fontSize: 30, fontWeight: 800, color: C.ink, background: "#fff", borderRadius: 14, padding: "14px 22px", boxShadow: "0 10px 30px rgba(0,2,48,0.12)", opacity: clamp01((sec - 112.4) / 0.4) * (1 - clamp01((sec - 117) / 0.4)) }}>
-          {["ПСД", "Договор", "ТЭП и объёмы", "Ход работ", "КС-2", "Оплата"][Math.min(5, Math.max(0, Math.floor(sec - 112.2)))]}
+          <StageWord sec={sec} />
         </div>
       )}
 
@@ -443,7 +481,7 @@ const All: React.FC = () => {
 
       {/* Подрядчик · двор, планшет */}
       <Sequence from={f(123)} durationInFrames={f(128.4) - f(123)}>
-        <LiveInsert src="v13/live/L5_tablet.mp4" start={f(123)} pin={pinAt("house", 123)} open={[f(123), f(124)]} track={L5 as Track} push={[f(126.4), f(128.4)]} ui={{ w: 1180, h: 820, node: <ContractorHome /> }} />
+        <LiveInsert src="v13/live/L5_tablet.mp4" start={f(123)} pin={(t) => pinAt("house", t)} open={[f(123), f(124)]} track={L5 as Track} push={[f(126.4), f(128.4)]} ui={{ w: 1180, h: 820, node: <ContractorHome /> }} />
       </Sequence>
       <Screen
         a={128.4}
@@ -452,6 +490,9 @@ const All: React.FC = () => {
         h={820}
         snap="c_home"
         keys={[K(128.4, 590, 410, 1), K(129.6, 590, 380, 1.05)]}
+        pointer={[P(128.4, 760, 420), P(129.2, 1082, 106)]}
+        clicks={[129.35]}
+        hold={0.25}
         over={<Toast a={128.5} b={129.6} x={590} y={150} text="Пора подавать заявку на ТМЦ · ул. Нагорная, 20 к4" start={f(128.4)} />}
       />
       <Screen
@@ -462,8 +503,10 @@ const All: React.FC = () => {
         snap="c_home"
         edit={marketEdit}
         keys={[K(129.6, 590, 380, 1.05), K(130.6, 640, 300, 1.3), K(134, 640, 300, 1.3)]}
-        pointer={[P(129.6, 760, 300), P(130.0, 900, 86), P(131.4, 660, 236), P(132.4, 1010, 236)]}
-        clicks={[130.0, 132.5]}
+        pointer={[P(129.6, 1082, 106), P(130.0, 900, 86), P(131.4, 660, 236), P(132.4, 1010, 236)]}
+        clicks={[130.0, 132.5, 133.7]}
+        xin={0.25}
+        hold={0.3}
         top={<Caption a={f(129.8) - f(129.6)} b={f(133.8) - f(129.6)}>Материалы по договорам — в одной витрине</Caption>}
       />
       <Screen
@@ -473,9 +516,10 @@ const All: React.FC = () => {
         h={820}
         snap="c_new"
         edit={contractorNewEdit}
-        keys={[K(134, 590, 410, 1.0), K(135.0, 590, 410, 1.0), K(136.6, 570, 500, 1.2), K(141.0, 570, 500, 1.2)]}
+        keys={[K(134, 640, 300, 1.3), K(134.9, 590, 410, 1.0), K(135.2, 590, 410, 1.0), K(136.6, 570, 500, 1.2), K(141.0, 570, 500, 1.2)]}
         pointer={[P(134, 1010, 236), P(136.8, 650, 390), P(137.8, 400, 520), P(140.4, 1010, 760)]}
         clicks={[137.9, 140.6]}
+        xin={0.3}
         pin={{ id: "house", a: 141.4, b: 142.4 }}
         over={<Toast a={140.7} b={141.6} x={590} y={700} text="Заявка отправлена на проверку ТУ ГАУ" start={f(134)} />}
         top={
@@ -499,7 +543,7 @@ const All: React.FC = () => {
         </MapStage>
       )}
       <Sequence from={f(144)} durationInFrames={f(147.4) - f(144)}>
-        <LiveInsert src="v13/live/L6_approver.mp4" start={f(144)} pin={pinAt("tu", 144)} open={[f(144), f(145)]} track={L6 as Track} push={[f(145.6), f(147.4)]} ui={{ w: 1600, h: 900, node: <ApprovalsQueue /> }} />
+        <LiveInsert src="v13/live/L6_approver.mp4" start={f(144)} pin={(t) => pinAt("tu", t)} open={[f(144), f(145)]} track={L6 as Track} push={[f(145.6), f(147.4)]} ui={{ w: 1600, h: 900, node: <ApprovalsQueue /> }} />
       </Sequence>
       <Screen
         a={147.4}
@@ -511,6 +555,7 @@ const All: React.FC = () => {
         keys={[K(147.4, 800, 450, 1), K(148.4, 640, 300, 1.45)]}
         pointer={[P(147.4, 900, 600), P(148.8, 345, 286)]}
         clicks={[149.1]}
+        hold={0.3}
       />
       <Screen
         a={149.4}
@@ -518,9 +563,11 @@ const All: React.FC = () => {
         w={1600}
         h={900}
         snap="tmc_changes"
-        keys={[K(149.4, 800, 450, 1), K(150.2, 1080, 470, 1.32), K(153.4, 1080, 470, 1.32)]}
+        keys={[K(149.4, 640, 300, 1.45), K(150.3, 1080, 470, 1.32), K(153.4, 1080, 470, 1.32)]}
         pointer={[P(149.4, 345, 286), P(151.4, 1405, 824), P(152.6, 1121, 190)]}
         clicks={[151.6, 152.8]}
+        xin={0.3}
+        hold={0.3}
         top={<Caption a={f(149.8) - f(149.4)} b={f(153.2) - f(149.4)}>Правки видны сразу: что изменено и кем</Caption>}
       />
       <Screen
@@ -530,8 +577,9 @@ const All: React.FC = () => {
         h={900}
         snap="stage8"
         edit={stage8Edit}
-        keys={[K(153.4, 950, 330, 1.12), K(156.4, 950, 330, 1.18)]}
+        keys={[K(153.4, 1080, 470, 1.32), K(154.2, 950, 330, 1.12), K(156.4, 950, 330, 1.18)]}
         pin={{ id: "econ", a: 155.6, b: 156.4 }}
+        xin={0.3}
         top={<Caption a={f(153.6) - f(153.4)} b={f(155.6) - f(153.4)}>Маршрут согласования виден всем</Caption>}
       />
 
@@ -548,7 +596,7 @@ const All: React.FC = () => {
         </MapStage>
       )}
       <Sequence from={f(158)} durationInFrames={f(162.4) - f(158)}>
-        <LiveInsert src="v13/live/L7_supplier.mp4" start={f(158)} pin={pinAt("store", 158)} open={[f(158), f(159)]} track={L7 as Track} push={[f(160.4), f(162.4)]} ui={{ w: 1440, h: 900, node: <SupplierStart /> }} />
+        <LiveInsert src="v13/live/L7_supplier.mp4" start={f(158)} pin={(t) => pinAt("store", t)} open={[f(158), f(159)]} track={L7 as Track} push={[f(160.4), f(162.4)]} ui={{ w: 1440, h: 900, node: <SupplierStart /> }} />
       </Sequence>
       <Screen
         a={162.4}
@@ -581,7 +629,7 @@ const All: React.FC = () => {
 
       {/* the truck arrives */}
       <Sequence from={f(176)} durationInFrames={f(180.6) - f(176)}>
-        <LiveInsert src="v13/live/L8_truck.mp4" start={f(176)} pin={pinAt("house", 176)} open={[f(176), f(177)]} />
+        <LiveInsert src="v13/live/L8_truck.mp4" start={f(176)} pin={(t) => pinAt("house", t)} open={[f(176), f(177)]} />
         <PushCard a={178.6} grow={[179.8, 180.6]} start={f(176)} />
       </Sequence>
       <Screen
@@ -591,39 +639,42 @@ const All: React.FC = () => {
         h={820}
         snap="c_home"
         edit={remindersEdit}
-        keys={[K(180.6, 590, 400, 1.0), K(181.4, 640, 330, 1.38), K(185.8, 640, 330, 1.38)]}
+        keys={[K(180.6, 590, 400, 1.0), K(181.4, 640, 330, 1.38), K(185.1, 640, 330, 1.38), K(185.8, 590, 410, 1.0)]}
         pointer={[P(180.6, 700, 400), P(181.6, 520, 300), P(184.8, 1010, 370)]}
         clicks={[181.8, 185.0]}
         top={<Caption a={f(180.8) - f(180.6)} b={f(185.6) - f(180.6)}>Система сама напомнит о следующем шаге</Caption>}
       />
       {/* M-15 signed on the tablet: the screen pulls out into the courtyard and back in */}
-      <Sequence from={f(185.8)} durationInFrames={f(190) - f(185.8)}>
+      <Sequence from={f(185.8)} durationInFrames={f(189.75) - f(185.8)}>
         <PullOutIn />
       </Sequence>
       <Screen
-        a={189.8}
-        b={194.4}
+        a={189.7}
+        b={195.2}
         w={1180}
         h={820}
         snap="c_home"
         edit={signedEdit}
-        keys={[K(189.8, 590, 410, 1.0), K(190.6, 640, 300, 1.35), K(194.4, 640, 300, 1.35)]}
-        top={<Caption a={f(190.4) - f(189.8)} b={f(194.2) - f(189.8)}>КЭП и Диадок — без бумаги и курьеров</Caption>}
+        keys={[K(189.7, 590, 410, 1.0), K(190.6, 640, 300, 1.35), K(194.4, 640, 300, 1.35)]}
+        pin={{ xy: ROUTE_LAST, look: ROUTE_DOT, a: 194.4, b: 195.2 }}
+        top={<Caption a={f(190.4) - f(189.7)} b={f(194.2) - f(189.7)}>КЭП и Диадок — без бумаги и курьеров</Caption>}
       />
 
       {/* route → question field (ТМЦ → ИИ) */}
-      <Sequence from={f(194.4)} durationInFrames={f(198.4) - f(194.4)}>
+      <Sequence from={f(194.4)} durationInFrames={f(198.4) - f(194.4)} style={{ zIndex: 2 }}>
         <RouteToChat />
       </Sequence>
+      {/* starts under the morph: the field it lands on is this screen's field */}
       <Screen
-        a={198.4}
+        a={197.6}
         b={206.4}
         w={1600}
         h={900}
         snap="dashboard"
         edit={chatEdit}
-        keys={[K(198.4, 800, 640, 1.2), K(199.4, 800, 560, 1.2), K(201.6, 820, 380, 1.32), K(206.4, 820, 380, 1.32)]}
-        top={<Caption a={f(199.0) - f(198.4)} b={f(206.2) - f(198.4)}>Спросите систему — как коллегу</Caption>}
+        keys={[K(197.6, 800, 450, 1.0), K(198.5, 800, 450, 1.0), K(199.7, 800, 525, 1.2), K(201.6, 820, 380, 1.32), K(206.4, 820, 380, 1.32)]}
+        hold={0.3}
+        top={<Caption a={f(199.0) - f(197.6)} b={f(206.2) - f(197.6)}>Спросите систему — как коллегу</Caption>}
       />
       <Screen
         a={206.4}
@@ -632,7 +683,9 @@ const All: React.FC = () => {
         h={900}
         snap="dashboard"
         edit={oneNameEdit}
-        keys={[K(206.4, 820, 330, 1.25), K(212.4, 860, 330, 1.25)]}
+        keys={[K(206.4, 820, 380, 1.32), K(207.2, 820, 330, 1.25), K(212.4, 820, 330, 1.25)]}
+        xin={0.3}
+        hold={0.3}
         top={<Caption a={f(206.8) - f(206.4)} b={f(212.2) - f(206.4)}>Три названия — одна позиция</Caption>}
       />
       <Screen
@@ -642,45 +695,47 @@ const All: React.FC = () => {
         h={900}
         snap="dashboard"
         edit={checkEdit}
-        keys={[K(212.4, 800, 300, 1.3), K(216.0, 800, 300, 1.3)]}
+        keys={[K(212.4, 820, 330, 1.25), K(213.1, 800, 300, 1.3), K(216.0, 800, 300, 1.3)]}
         pin={{ id: "house", a: 215.2, b: 216.0 }}
+        xin={0.3}
         top={<Caption a={f(212.6) - f(212.4)} b={f(215.2) - f(212.4)}>Документы сверяются сами — сотрудник видит только отклонения</Caption>}
       />
-      {sec >= 215.2 && sec < 217.4 && (
-        <MapStage>{(cam, day) => <Pin cam={cam} id="house" show={1} day={day} active={1} />}</MapStage>
-      )}
-      <Sequence from={f(216.4)} durationInFrames={f(220.6) - f(216.4)}>
-        <ToPin a={f(219.8)} b={f(220.6)} pin={[960, 540]} start={f(216.4)}>
-          <LiveInsert src="v13/live/L10_resident.mp4" start={f(216.4)} pin={pinAt("house", 216.4)} open={[f(216.4), f(217.2)]} />
-        </ToPin>
-        <Caption a={f(217.4) - f(216.4)} b={f(219.8) - f(216.4)}>Житель пишет об отоплении</Caption>
-      </Sequence>
-      <FromCenter a={220.4} b={221.2}>
-        <Screen
-          a={220.4}
-          b={227.2}
-          w={1600}
-          h={900}
-          snap="dashboard"
-          edit={citizenEdit}
-          keys={[K(220.4, 820, 360, 1.18), K(223.0, 820, 380, 1.24), K(227.2, 820, 420, 1.24)]}
-          top={<Caption a={f(221.6) - f(220.4)} b={f(227.0) - f(220.4)}>Обращение сразу попадает к исполнителю</Caption>}
-        />
-      </FromCenter>
-      {sec >= 227 && sec < 230.6 && <MethodsLine />}
-
-      {/* АКТ IV — эффект на светлой карте */}
-      {sec >= 230 && sec < 259.6 && (
-        <MapStage dim={0.62 * clamp01((sec - 230) / 0.8) * (1 - clamp01((sec - 256.4) / 1.2))}>
+      {/* one map from the resident to the end: her appeal travels to the Fund, the
+          camera flies out over the whole city for the effect, and the finale opens
+          from the same house pin */}
+      {sec >= 215.2 && sec < 259.8 && (
+        <MapStage dim={0.62 * clamp01((sec - 227.2) / 0.8) * (1 - clamp01((sec - 256.4) / 1.2))}>
           {(cam, day, s) => (
             <>
-              <Objects cam={cam} grow={1} day={day} o={0.55} />
+              <Objects cam={cam} grow={clamp01((s - 227.4) / 2.2)} day={day} o={0.55} />
               {s > 238.4 && s < 242.4 &&
                 ["w_se>nagornaya", "w_nw>kuntsevo", "w_ne>otradnoe"].map((k, i) => <Comet key={k} cam={cam} line={ROUTES[k]} u={((s - 238.4 - i * 0.5) / 2) % 1} tail={120} width={4} />)}
+              <DataArc cam={cam} from="house" to="fund" u={(s - 220.3) / 0.8} />
+              <Pin cam={cam} id="fund" show={clamp01((s - 219.9) / 0.4) * (1 - clamp01((s - 227.8) / 0.6))} day={day} active={s > 221.0 && s < 222.2 ? 1 : 0} label={s < 227.2} />
+              <Pin cam={cam} id="house" show={1} day={day} active={s < 217.4 ? 1 : s > 257.0 && s < 258.8 ? 0.7 + 0.3 * Math.sin((s - 257.0) * 5) : 0} label={s < 227.2 || s > 256.8} />
             </>
           )}
         </MapStage>
       )}
+      <Sequence from={f(216.4)} durationInFrames={f(220.2) - f(216.4)}>
+        <LiveInsert src="v13/live/L10_resident.mp4" start={f(216.4)} pin={(t) => pinAt("house", t)} open={[f(216.4), f(217.2)]} close={[f(219.4), f(220.2)]} closePin={(t) => pinAt("house", t)} />
+        <Caption a={f(217.4) - f(216.4)} b={f(219.3) - f(216.4)}>Житель пишет об отоплении</Caption>
+      </Sequence>
+      {/* the appeal opens out of the Fund's pin and folds back into it */}
+      <Screen
+        a={221.2}
+        b={227.2}
+        w={1600}
+        h={900}
+        snap="dashboard"
+        edit={citizenEdit}
+        keys={[K(221.2, 820, 380, 1.24), K(227.2, 820, 380, 1.24)]}
+        open={{ id: "fund", a: 221.2, b: 222.0 }}
+        pin={{ id: "fund", a: 226.6, b: 227.2 }}
+        top={<Caption a={f(222.3) - f(221.2)} b={f(226.4) - f(221.2)}>Обращение сразу попадает к исполнителю</Caption>}
+      />
+
+      {sec >= 227 && sec < 230.6 && <MethodsLine />}
       {sec >= 230 && sec < 256.8 && <Effect />}
 
       {/* ФИНАЛ */}
@@ -690,6 +745,19 @@ const All: React.FC = () => {
         </Sequence>
       )}
     </>
+  );
+};
+
+/** The stage chip: each word rolls up out of the chip as the next rolls in, on the tab click. */
+const STAGES = ["ПСД", "Договор", "ТЭП и объёмы", "Ход работ", "КС-2", "Оплата"];
+const StageWord: React.FC<{ sec: number }> = ({ sec }) => {
+  const i = Math.min(5, Math.max(0, Math.floor(sec - 112.2)));
+  const u = i < 5 ? easeInOut(ramp(sec, 112.2 + i + 0.85, 112.2 + i + 1.05)) : 0;
+  return (
+    <div style={{ position: "relative", height: 38, overflow: "hidden", display: "grid" }}>
+      <span style={{ gridArea: "1/1", transform: `translateY(${-38 * u}px)`, opacity: 1 - u }}>{STAGES[i]}</span>
+      {u > 0 && <span style={{ gridArea: "1/1", transform: `translateY(${38 * (1 - u)}px)`, opacity: u }}>{STAGES[i + 1]}</span>}
+    </div>
   );
 };
 
@@ -721,12 +789,15 @@ const DataArc: React.FC<{ cam: any; from: keyof typeof PLACES; to: keyof typeof 
   const [x2, y2] = project(cam, PLACES[to].lng, PLACES[to].lat);
   const mx = (x1 + x2) / 2;
   const my = (y1 + y2) / 2 - Math.hypot(x2 - x1, y2 - y1) * 0.22;
-  const k = clamp01(u);
   const pt = (t: number) => [(1 - t) * (1 - t) * x1 + 2 * (1 - t) * t * mx + t * t * x2, (1 - t) * (1 - t) * y1 + 2 * (1 - t) * t * my + t * t * y2];
-  const n = 40;
-  const d = Array.from({ length: Math.max(2, Math.round(n * easeInOut(k))) }, (_, i) => pt((i / n) * 1)).map((p, i) => `${i ? "L" : "M"}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join("");
-  const [hx, hy] = pt(easeInOut(k));
-  if (u <= 0) return null;
+  // the head draws the line out; once it lands, the tail follows it into the pin
+  const head = easeInOut(clamp01(u));
+  const tail = easeInOut(clamp01((u - 1) / 0.55));
+  if (u <= 0 || tail >= 1) return null;
+  const n = 48;
+  const pts = Array.from({ length: n + 1 }, (_, i) => tail + ((head - tail) * i) / n).map(pt);
+  const d = pts.map((p, i) => `${i ? "L" : "M"}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join("");
+  const [hx, hy] = pt(head);
   return (
     <g>
       <path d={d} fill="none" stroke={C.blue} strokeWidth={4} strokeLinecap="round" opacity={0.85} />
@@ -771,7 +842,7 @@ const PushCard: React.FC<{ a: number; grow: [number, number]; start: number }> =
 const PullOutIn: React.FC = () => {
   const start = f(185.8);
   const fr = useCurrentFrame() + start;
-  const ep = fr < f(187.5) ? 1 - ramp(fr, f(185.8), f(186.8)) : ramp(fr, f(188.6), f(190));
+  const ep = fr < f(187.5) ? 1 - ramp(fr, f(185.8), f(186.8)) : ramp(fr, f(188.5), f(189.7));
   return (
     <LiveInsert
       src="v13/live/L9_sign.mp4"
@@ -783,20 +854,11 @@ const PullOutIn: React.FC = () => {
   );
 };
 
-/** A full-frame layer that unfolds from the frame centre (inverse of ToPin). */
-const FromCenter: React.FC<{ a: number; b: number; children: React.ReactNode }> = ({ a, b, children }) => {
-  const fr = useCurrentFrame();
-  if (fr < f(a)) return null;
-  const e = easeInOut(ramp(fr, f(a), f(b)));
-  const s = 0.04 + 0.96 * e;
-  return <AbsoluteFill style={{ transform: `scale(${s})`, borderRadius: 40 * (1 - e), overflow: "hidden", opacity: clamp01(e * 3) }}>{children}</AbsoluteFill>;
-};
-
 const MethodsLine: React.FC = () => {
   const fr = useCurrentFrame();
   const items = ["Протоколы встреч", "Звонки подрядчикам", "Прогноз потребности", "Фото технадзора", "Поиск аномалий", "База знаний"];
   return (
-    <AbsoluteFill style={{ background: "#F3F3F3", fontFamily: FONT, justifyContent: "center", padding: "0 120px" }}>
+    <AbsoluteFill style={{ fontFamily: FONT, justifyContent: "center", padding: "0 120px", opacity: 1 - easeInOut(ramp(fr, f(229.9), f(230.5))) }}>
       <div style={{ fontSize: 30, fontWeight: 700, color: C.muted, opacity: easeOut(ramp(fr, f(227.1), f(227.6))) }}>И ещё ИИ в системе</div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: "18px 44px", marginTop: 26 }}>
         {items.map((t, i) => {
@@ -812,9 +874,10 @@ const MethodsLine: React.FC = () => {
   );
 };
 
-/** Finale: the evening city plays, then folds into the first window of the ФКР mark,
-    and the mark draws itself around it on white. */
-const MARK = { x: 640, y: 360, size: 210 }; // mark's top-left and height on the end card
+/** Finale: the evening city grows out of the house pin (the film's thread), plays,
+    then folds into the first window of the ФКР mark, and the mark draws itself
+    around it on white. */
+const MARK = { x: 541, y: 380, size: 210 }; // mark's top-left and height: the mark + tagline block sits in the frame centre
 const WIN0 = (() => {
   const k = MARK.size / 56;
   return { x: MARK.x + 21 * k, y: MARK.y + 10 * k, w: 3 * k, h: 6 * k };
@@ -823,12 +886,21 @@ const WIN0 = (() => {
 const EndCard: React.FC = () => {
   const fr = useCurrentFrame() + f(258.6);
   const fold = easeInOut(ramp(fr, f(263.0), f(264.6)));
-  const open = easeInOut(ramp(fr, f(258.6), f(259.8)));
-  // live rect: from a centre pin to full frame, later to the mark's first window
-  const r0 = { x: 960 - 13 + (0 - (960 - 13)) * open, y: 540 - 13 + (0 - (540 - 13)) * open, w: 26 + (1920 - 26) * open, h: 26 + (1080 - 26) * open };
-  const r = { x: r0.x + (WIN0.x - r0.x) * fold, y: r0.y + (WIN0.y - r0.y) * fold, w: r0.w + (WIN0.w - r0.w) * fold, h: r0.h + (WIN0.h - r0.h) * fold };
+  const open = ramp(fr, f(258.6), f(259.8));
+  // live rect: full frame, later the mark's first window
+  const r = { x: WIN0.x * fold, y: WIN0.y * fold, w: 1920 + (WIN0.w - 1920) * fold, h: 1080 + (WIN0.h - 1080) * fold };
   const s = Math.max(r.w / 1920, r.h / 1080);
-  const radius = 8 * (1 - open) + 18 * Math.sin(Math.PI * fold) + 2 * fold;
+  const radius = 18 * Math.sin(Math.PI * fold) + 2 * fold;
+  const evening = <OffthreadVideo src={staticFile("v13/live/L11_evening_s85.mp4")} muted style={{ width: 1920, height: 1080 }} />;
+  if (open < 1) {
+    return (
+      <AbsoluteFill>
+        <PinMorph k={open} pin={pinAt("house", fr / 60)}>
+          <AbsoluteFill>{evening}</AbsoluteFill>
+        </PinMorph>
+      </AbsoluteFill>
+    );
+  }
   const k = MARK.size / 56;
   return (
     <AbsoluteFill style={{ background: fold > 0 ? "#fff" : "transparent", fontFamily: FONT }}>
@@ -857,7 +929,8 @@ const EndCard: React.FC = () => {
       )}
       <div style={{ position: "absolute", left: r.x, top: r.y, width: r.w, height: r.h, borderRadius: radius, overflow: "hidden", background: C.orangeLogo }}>
         <div style={{ position: "absolute", left: (r.w - 1920 * s) / 2, top: (r.h - 1080 * s) / 2, width: 1920, height: 1080, transformOrigin: "0 0", transform: `scale(${s})`, opacity: 1 - ramp(fr, f(264.2), f(264.6)) }}>
-          <OffthreadVideo src={staticFile("v13/live/L11_evening.mp4")} playbackRate={0.85} muted style={{ width: 1920, height: 1080 }} />
+          {/* pre-slowed to 0.85 with motion interpolation (no repeated frames) */}
+          {evening}
         </div>
       </div>
     </AbsoluteFill>

@@ -10,6 +10,6 @@ const serveUrl = await bundle({ entryPoint: path.resolve("src/index.ts") });
 const chromiumOptions = { gl: process.env.GL || "angle" };
 const comp = await selectComposition({ serveUrl, id, inputProps: {}, chromiumOptions });
 for (const f of frames.map(Number)) {
-  await renderStill({ serveUrl, composition: comp, output: path.join(out, `f${String(f).padStart(5, "0")}.jpg`), frame: f, imageFormat: "jpeg", jpegQuality: 88, chromiumOptions, timeoutInMilliseconds: 180000 });
+  await renderStill({ serveUrl, composition: comp, scale: Number(process.env.SCALE || 1), output: path.join(out, `f${String(f).padStart(5, "0")}.jpg`), frame: f, imageFormat: "jpeg", jpegQuality: 88, chromiumOptions, timeoutInMilliseconds: 180000 });
 }
 console.log("done", frames.length);

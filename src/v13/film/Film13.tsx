@@ -4,8 +4,8 @@ import "../../fonts";
 import { C, FONT } from "../../theme";
 import { clamp01, easeInOut, easeOut, ramp } from "../geom";
 import { project } from "../MoscowMap";
-import { AsIs, collapse } from "./AsIs";
-import { LiveInsert, Track } from "./Insert";
+import { AsIs } from "./AsIs";
+import { LiveInsert, PinMorph, Track } from "./Insert";
 import { Caption, Super, ToPin } from "./Kit";
 import { Lockup } from "./Logo13";
 import { camAt, Comet, MapStage, Objects, Pin } from "./MapStage";
@@ -59,34 +59,47 @@ const Logistics: React.FC<{ sec: number; cam: any }> = ({ sec, cam }) => {
   return <g>{items}</g>;
 };
 
-/** Three spreadsheets, three dates for one delivery, next to the house pin. */
-const ThreeTables: React.FC<{ sec: number; cam: any }> = ({ sec, cam }) => {
-  const [x, y] = project(cam, PLACES.house.lng, PLACES.house.lat);
-  const rows: [string, string][] = [
-    ["Таблица УРО", "18.10"],
-    ["Таблица подрядчика", "20.10"],
-    ["Таблица поставщика", "22.10"],
-  ];
+/** Three spreadsheets, three dates for one delivery: each grows out of the house
+    pin to its place beside it, and they fold back into the pin before the call. */
+const TABLES: [string, string][] = [
+  ["Таблица УРО", "18.10"],
+  ["Таблица подрядчика", "20.10"],
+  ["Таблица поставщика", "22.10"],
+];
+const ThreeTables: React.FC<{ sec: number }> = ({ sec }) => {
+  if (sec < 26.2 || sec > 34.2) return null;
+  const [x, y] = pinXY("house", sec);
   return (
-    <g>
-      {rows.map(([n, d], i) => {
-        const k = easeOut(clamp01((sec - 26.2 - i * 0.35) / 0.6)) * (1 - clamp01((sec - 33.4) / 0.6));
+    <>
+      {TABLES.map(([n, d], i) => {
+        const k = ramp(sec, 26.2 + i * 0.35, 26.9 + i * 0.35) * (1 - ramp(sec, 33.3 + (2 - i) * 0.12, 33.9 + (2 - i) * 0.12));
         if (k <= 0) return null;
-        const bx = x + 40;
-        const by = y - 150 + i * 70;
         return (
-          <g key={i} opacity={k} transform={`translate(${(1 - k) * 20},0)`}>
-            <rect x={bx} y={by} width={360} height={56} rx={10} fill="#fff" />
-            <text x={bx + 18} y={by + 36} fontFamily={FONT} fontSize={21} fontWeight={600} fill={C.muted}>
-              {n}
-            </text>
-            <text x={bx + 342} y={by + 37} textAnchor="end" fontFamily={FONT} fontSize={24} fontWeight={800} fill={i === 1 ? C.ink : C.red}>
-              {d}
-            </text>
-          </g>
+          <PinMorph key={i} k={k} pin={[x, y]} to={{ x: x + 40, y: y - 150 + i * 70, w: 360, h: 56, r: 10, sh: 0.25 }} w={360} h={56}>
+            <div style={{ position: "absolute", inset: 0, background: "#fff", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 18px", fontFamily: FONT }}>
+              <span style={{ fontSize: 21, fontWeight: 600, color: C.muted }}>{n}</span>
+              <span style={{ fontSize: 24, fontWeight: 800, color: i === 1 ? C.ink : C.red }}>{d}</span>
+            </div>
+          </PinMorph>
         );
       })}
-    </g>
+    </>
+  );
+};
+
+/** The turn: «Единая система» grows out of the Fund's pin, then folds back into it
+    as the camera dives into the Fund. */
+const CARD = { x: 510, y: 380, w: 900, h: 320, r: 28, sh: 0.16 };
+const TurnCard: React.FC<{ sec: number }> = ({ sec }) => {
+  const k = ramp(sec, 78.9, 79.8) * (1 - ramp(sec, 82.4, 83.3));
+  if (k <= 0 || sec < 78.9) return null;
+  return (
+    <PinMorph k={k} pin={pinXY("fund", sec)} to={CARD} w={CARD.w} h={CARD.h}>
+      <div style={{ position: "absolute", inset: 0, background: "#fff", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+        <Lockup size={120} draw={clamp01((sec - 79.4) / 1.1)} lit={clamp01((sec - 80.1) / 1.0)} word={clamp01((sec - 80.3) / 0.7)} />
+        <div style={{ marginTop: 26, fontSize: 40, fontWeight: 750, letterSpacing: -0.8, color: C.ink, opacity: clamp01((sec - 80.8) / 0.6) }}>Единая система капитального ремонта</div>
+      </div>
+    </PinMorph>
   );
 };
 
@@ -94,7 +107,6 @@ export const Film13: React.FC = () => {
   const frame = useCurrentFrame();
   const sec = frame / 60;
   const mapOn = MAP_SPANS.some(([a, b]) => sec >= a && sec <= b);
-  const houseNow = pinXY("house", sec);
 
   return (
     <AbsoluteFill style={{ background: sec > 76 && sec < 256 ? "#F3F3F3" : "#090C26", fontFamily: FONT }}>
@@ -104,7 +116,6 @@ export const Film13: React.FC = () => {
             <>
               <Objects cam={cam} grow={clamp01((s - 14.2) / 4.2)} day={day} o={1 - 0.72 * clamp01((s - 21.6) / 1.2) - 0.28 * clamp01((s - 38) / 2)} />
               <Logistics sec={s} cam={cam} />
-              <ThreeTables sec={s} cam={cam} />
               <Pin cam={cam} id="house" show={clamp01((s - 11.6) / 0.8)} day={day} label={s > 13.5 && s < 23} active={s > 26 && s < 34 ? 0.6 + 0.4 * Math.sin(s * 4) : 0} />
               {(["fund", "tu", "uro", "econ", "store"] as const).map((id, i) => (
                 <Pin key={id} cam={cam} id={id} show={clamp01((s - 78.4 - i * 0.25) / 0.6)} day={day} label={s < 82.2} />
@@ -115,13 +126,20 @@ export const Film13: React.FC = () => {
       )}
 
       {/* ОТКРЫТИЕ */}
+      {/* plates are pre-slowed to 0.9 with motion interpolation (no repeated frames) */}
+      {/* dawn → roof: one forward move — the wide shot accelerates in, the roof shot
+          carries the same push through the dissolve and settles */}
       <Sequence from={f(T.p1[0])} durationInFrames={f(T.p1[1] - T.p1[0])}>
-        <Plate src="v13/live/P1_dawn.mp4" rate={0.9} />
+        <AbsoluteFill style={{ transform: `scale(${1 + 0.12 * Math.pow(ramp(sec, 5.2, 6.6), 2)})`, opacity: easeInOut(ramp(sec, 0, 0.7)) }}>
+          <Plate src="v13/live/P1_dawn_s90.mp4" />
+        </AbsoluteFill>
         <Vignette />
       </Sequence>
-      <Sequence from={f(T.p2[0])} durationInFrames={f(T.p2[1] - T.p2[0])}>
-        <ToPin a={f(11.4)} b={f(12.8)} pin={pinXY("house", 12.8)} start={f(T.p2[0])}>
-          <Plate src="v13/live/P2_roof.mp4" rate={0.9} />
+      <Sequence from={f(T.p2[0])} durationInFrames={f(T.p2[1] - T.p2[0])} style={{ opacity: easeInOut(clamp01((sec - T.p2[0]) / 0.4)) }}>
+        <ToPin a={f(11.4)} b={f(12.8)} pin={(t) => pinXY("house", t)} start={f(T.p2[0])}>
+          <AbsoluteFill style={{ transform: `scale(${1 + 0.045 * easeOut(ramp(sec, 6.2, 8.4))})` }}>
+            <Plate src="v13/live/P2_roof_s90.mp4" />
+          </AbsoluteFill>
           <Vignette />
         </ToPin>
       </Sequence>
@@ -134,33 +152,23 @@ export const Film13: React.FC = () => {
 
       {/* phone call from the house */}
       <Sequence from={f(T.phone[0])} durationInFrames={f(T.phone[1] - T.phone[0])}>
-        <LiveInsert src="v13/live/L3_phone.mp4" start={f(T.phone[0])} pin={houseNow} open={[f(34), f(35.1)]} close={[f(39.3), f(40.4)]} closePin={pinXY("house", 40.4)} />
+        <LiveInsert src="v13/live/L3_phone_s78.mp4" start={f(T.phone[0])} pin={(t) => pinXY("house", t)} open={[f(34), f(35.1)]} close={[f(39.3), f(40.4)]} />
         <Caption a={f(1.0)} b={f(5.2)}>Факт поставки — обзвоном подрядчиков</Caption>
       </Sequence>
 
       {/* as-is windows over the dimmed map */}
-      {sec >= T.twice[0] && sec < T.turn[0] + 1.5 && (
-        <AbsoluteFill style={{ transformOrigin: "50% 50%", transform: `scale(${1 - collapse(frame)})`, opacity: 1 - collapse(frame) }}>
-          <AsIs />
-        </AbsoluteFill>
-      )}
+      <ThreeTables sec={sec} />
+      {sec >= 40.4 && sec < 73.2 && <AsIs />}
 
       {/* ПОВОРОТ */}
-      {sec >= 78.2 && sec < 84 && (
-        <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", opacity: 1 - clamp01((sec - 82.4) / 0.8) }}>
-          <div style={{ background: "#fff", borderRadius: 28, padding: "40px 56px 44px", boxShadow: "0 30px 80px rgba(0,2,48,0.16)", textAlign: "center", opacity: easeOut(clamp01((sec - 78.2) / 0.6)) }}>
-            <Lockup size={120} draw={clamp01((sec - 78.3) / 1.1)} lit={clamp01((sec - 79.0) / 1.0)} word={clamp01((sec - 79.2) / 0.7)} />
-            <div style={{ marginTop: 26, fontSize: 40, fontWeight: 750, letterSpacing: -0.8, color: C.ink, opacity: clamp01((sec - 79.8) / 0.6) }}>Единая система капитального ремонта</div>
-          </div>
-        </AbsoluteFill>
-      )}
+      <TurnCard sec={sec} />
 
       {/* АКТ II — Фонд: the pin opens into the office, the camera goes into the monitor */}
       <Sequence from={f(T.fundInsert[0])} durationInFrames={f(T.fundInsert[1] - T.fundInsert[0])}>
         <LiveInsert
           src="v13/live/P4_office.mp4"
           start={f(T.fundInsert[0])}
-          pin={pinXY("fund", 83.6)}
+          pin={(t) => pinXY("fund", t)}
           open={[f(83.6), f(84.6)]}
           track={P4 as Track}
           push={[f(86.4), f(88.6)]}

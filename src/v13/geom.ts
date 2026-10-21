@@ -63,3 +63,40 @@ export const easeInOut = (t: number) => {
 };
 /** Linear ramp of `f` between frames a and b, clamped. */
 export const ramp = (f: number, a: number, b: number) => clamp01((f - a) / (b - a));
+
+/** A C1 camera path through keys (monotone cubic, Fritsch–Carlson, per channel).
+    A move that keeps its direction flows through an intermediate key without
+    stopping; holds, reversals and the ends still land with zero speed, and no
+    channel ever overshoots its keys. `ts` ascending, `vs[i]` the channels at ts[i]. */
+export const smoothPath = (ts: number[], vs: number[][], t: number): number[] => {
+  const n = ts.length;
+  if (n === 1 || t <= ts[0]) return vs[0].slice();
+  if (t >= ts[n - 1]) return vs[n - 1].slice();
+  let i = 0;
+  while (t > ts[i + 1]) i++;
+  const slope = (k: number, c: number) => {
+    if (k === 0 || k === n - 1) return 0;
+    const h0 = ts[k] - ts[k - 1];
+    const h1 = ts[k + 1] - ts[k];
+    const d0 = (vs[k][c] - vs[k - 1][c]) / h0;
+    const d1 = (vs[k + 1][c] - vs[k][c]) / h1;
+    if (d0 * d1 <= 0) return 0;
+    const w1 = 2 * h1 + h0;
+    const w2 = h1 + 2 * h0;
+    return (w1 + w2) / (w1 / d0 + w2 / d1);
+  };
+  const h = ts[i + 1] - ts[i];
+  if (h <= 0) return vs[i + 1].slice();
+  const u = (t - ts[i]) / h;
+  const u2 = u * u;
+  const u3 = u2 * u;
+  return vs[i].map((v0, c) => {
+    const v1 = vs[i + 1][c];
+    const m0 = slope(i, c);
+    const m1 = slope(i + 1, c);
+    // a move from rest to rest: smootherstep — soft start and landing, top speed
+    // only 1.9× the average (the quartic ease peaks at 4× and reads as a whip)
+    if (m0 === 0 && m1 === 0) return v0 + (v1 - v0) * u3 * (u * (6 * u - 15) + 10);
+    return (2 * u3 - 3 * u2 + 1) * v0 + (u3 - 2 * u2 + u) * h * m0 + (-2 * u3 + 3 * u2) * v1 + (u3 - u2) * h * m1;
+  });
+};

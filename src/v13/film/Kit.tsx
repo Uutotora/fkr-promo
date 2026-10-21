@@ -1,8 +1,8 @@
 import React from "react";
 import { AbsoluteFill, useCurrentFrame } from "remotion";
 import { C, FONT } from "../../theme";
-import { clamp01, easeInOut, easeOut, ramp } from "../geom";
-import { coverRect } from "./Insert";
+import { clamp01, easeInOut, easeOut, ramp, smoothPath } from "../geom";
+import { coverRect, Look, PinMorph } from "./Insert";
 
 /* Shared pieces for the v13 film: UI camera, captions, pointer, window → pin. */
 
@@ -10,23 +10,19 @@ const W = 1920;
 const H = 1080;
 
 /** Camera over a UI of logical size w×h. Keys: [film frame, focus x, focus y, zoom]
-    where zoom 1 = the UI covers the frame. Moves are eased between keys. */
+    where zoom 1 = the UI covers the frame. One continuous path through the keys
+    (zoom in log space): chained moves don't stop at intermediate keys. */
 export type CamKey = [number, number, number, number];
 export const UICam: React.FC<{ w: number; h: number; keys: CamKey[]; start: number; children: React.ReactNode }> = ({ w, h, keys, start, children }) => {
   const f = useCurrentFrame() + start;
-  let fx = keys[0][1];
-  let fy = keys[0][2];
-  let z = keys[0][3];
-  for (let i = 0; i < keys.length - 1; i++) {
-    const [a, ax, ay, az] = keys[i];
-    const [b, bx, by, bz] = keys[i + 1];
-    if (f >= a) {
-      const u = easeInOut((f - a) / Math.max(1, b - a));
-      fx = ax + (bx - ax) * u;
-      fy = ay + (by - ay) * u;
-      z = az * Math.pow(bz / az, u);
-    }
-  }
+  const p = smoothPath(
+    keys.map((k) => k[0]),
+    keys.map((k) => [k[1], k[2], Math.log(k[3])]),
+    f,
+  );
+  let fx = p[0];
+  let fy = p[1];
+  const z = Math.exp(p[2]);
   const c = coverRect(w, h);
   const s = c.s * z;
   // keep the UI covering the frame: clamp the focus so no edge shows
@@ -134,33 +130,34 @@ export const Pointer: React.FC<{ keys: [number, number, number][]; clicks?: numb
   );
 };
 
-/** A full-frame layer that folds into a pin on the map (window → pin). */
-export const ToPin: React.FC<{ a: number; b: number; pin: [number, number]; children: React.ReactNode; start: number }> = ({ a, b, pin, children, start }) => {
+/** A full-frame layer that folds into a pin on the map (window → pin): the frame
+    shrinks into the pin's card, the content turning into its orange window.
+    `pin` may follow the moving map camera (a function of film seconds). */
+export const ToPin: React.FC<{ a: number; b: number; pin: [number, number] | ((sec: number) => [number, number]); look?: Look; children: React.ReactNode; start: number }> = ({ a, b, pin, look, children, start }) => {
   const f = useCurrentFrame() + start;
-  const e = easeInOut(ramp(f, a, b));
-  if (e <= 0) return <AbsoluteFill>{children}</AbsoluteFill>;
-  const s = 1 - e * (1 - 26 / W);
-  const cx = W / 2 + (pin[0] - W / 2) * e;
-  const cy = H / 2 + (pin[1] - H / 2) * e;
-  const r = 14 + 40 * e;
+  const k = 1 - ramp(f, a, b);
+  if (k >= 1) return <AbsoluteFill>{children}</AbsoluteFill>;
+  const at = typeof pin === "function" ? pin(f / 60) : pin;
   return (
-    <AbsoluteFill style={{ opacity: 1 - ramp(f, b - 6, b) }}>
-      <div
-        style={{
-          position: "absolute",
-          left: 0,
-          top: 0,
-          width: W,
-          height: H,
-          transformOrigin: "50% 50%",
-          transform: `translate(${cx - W / 2}px, ${cy - H / 2}px) scale(${s})`,
-          borderRadius: r / s,
-          overflow: "hidden",
-          boxShadow: `0 ${30 * e}px ${60 * e}px rgba(0,2,48,${0.25 * e})`,
-        }}
-      >
+    <AbsoluteFill>
+      <PinMorph k={k} pin={at} look={look}>
         {children}
-      </div>
+      </PinMorph>
+    </AbsoluteFill>
+  );
+};
+
+/** The reverse: a full-frame layer that grows out of a pin. */
+export const FromPin: React.FC<{ a: number; b: number; pin: [number, number] | ((sec: number) => [number, number]); look?: Look; children: React.ReactNode; start: number }> = ({ a, b, pin, look, children, start }) => {
+  const f = useCurrentFrame() + start;
+  const k = ramp(f, a, b);
+  if (k >= 1) return <AbsoluteFill>{children}</AbsoluteFill>;
+  const at = typeof pin === "function" ? pin(f / 60) : pin;
+  return (
+    <AbsoluteFill>
+      <PinMorph k={k} pin={at} look={look}>
+        {children}
+      </PinMorph>
     </AbsoluteFill>
   );
 };
