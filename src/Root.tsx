@@ -7,6 +7,9 @@ import { FilmFinal, FILM_FINAL_DURATION } from "./v3/Intro";
 import TL from "./timeline.json";
 import { Film12, FilmFinal12, FILM12_FRAMES, FINAL12_FRAMES } from "./v12/Film12";
 import { Prologue13, PROLOGUE13_FRAMES } from "./v13/Prologue13";
+import { SnapTest } from "./v13/SnapTest";
+import { MapTest } from "./v13/MapTest";
+import { Film13, DURATION as FILM13_FRAMES } from "./v13/film/Film13";
 import {PriceOfRepetition} from './repetition/PriceOfRepetition';
 import {RepeatScene} from './repetition/scenes/Repeat';
 import {LayersScene} from './repetition/scenes/Layers';
@@ -17,8 +20,11 @@ import {ValueScene} from './repetition/scenes/Value';
 
 export const RemotionRoot: React.FC = () => (
   <>
+    <Composition id="V13Film" component={Film13} durationInFrames={FILM13_FRAMES} fps={60} width={1920} height={1080} />
+    <Composition id="V13Map" component={MapTest} durationInFrames={3} fps={60} width={1920} height={1080} />
+    <Composition id="V13Snap" component={SnapTest} durationInFrames={60} fps={60} width={1920} height={1080} defaultProps={{ snap: "dashboard", w: 1600, h: 900 }} />
     <Composition id="V13Prologue" component={Prologue13} durationInFrames={PROLOGUE13_FRAMES} fps={60} width={1920} height={1080} />
-    <Composition id="PromoV12"component={FilmFinal12} durationInFrames={FINAL12_FRAMES} fps={TL.fps} width={1920} height={1080} defaultProps={{ withAudio: true }} />
+    <Composition id="PromoV12" component={FilmFinal12} durationInFrames={FINAL12_FRAMES} fps={TL.fps} width={1920} height={1080} defaultProps={{ withAudio: true }} />
     <Composition id="PromoV12Silent" component={FilmFinal12} durationInFrames={FINAL12_FRAMES} fps={TL.fps} width={1920} height={1080} defaultProps={{ withAudio: false }} />
     <Composition id="FilmV12" component={Film12} durationInFrames={FILM12_FRAMES} fps={TL.fps} width={1920} height={1080} defaultProps={{ withAudio: false }} />
     <Composition id="PriceOfRepetition" component={PriceOfRepetition} durationInFrames={3600} fps={60} width={1920} height={1080} defaultProps={{withAudio:true}} />
