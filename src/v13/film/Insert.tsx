@@ -125,6 +125,7 @@ const CLIP_FRAMES: Record<string, number> = {
 export const LiveInsert: React.FC<{
   src: string;
   start: number; // film frame where the clip's first frame shows
+  from?: number; // clip frames skipped at the start
   rate?: number;
   pin?: Where; // the pin it grows out of (may follow the moving map camera)
   open?: [number, number]; // film frames: pin → full frame
@@ -134,9 +135,9 @@ export const LiveInsert: React.FC<{
   push?: [number, number]; // film frames: into the screen
   ep?: number; // explicit push amount 0…1 (overrides `push`), for pull-outs
   ui?: { w: number; h: number; node: React.ReactNode };
-}> = ({ src, start, rate = 1, pin, open, close, closePin, track, push, ep: epOverride, ui }) => {
+}> = ({ src, start, from = 0, rate = 1, pin, open, close, closePin, track, push, ep: epOverride, ui }) => {
   const now = useCurrentFrame();
-  const hold = Math.floor(((CLIP_FRAMES[src] ?? Infinity) - 1) / rate);
+  const hold = Math.floor(((CLIP_FRAMES[src] ?? Infinity) - 1 - from) / rate);
   const local = Math.min(now, hold);
   const f = now + start;
   // the shot grows out of its map pin and folds back into one
@@ -153,7 +154,7 @@ export const LiveInsert: React.FC<{
   let cam = "none";
   let uiLayer: React.ReactNode = null;
   if (track && ui) {
-    const q = quadAt(track, local, rate);
+    const q = quadAt(track, local + from / rate, rate);
     const c = coverRect(ui.w, ui.h);
     const full = rectQuad(ui.w * c.s, ui.h * c.s, c.x, c.y);
     const ep = epOverride !== undefined ? easeInOut(epOverride) : push ? easeInOut(ramp(f, push[0], push[1])) : 0;
@@ -187,7 +188,7 @@ export const LiveInsert: React.FC<{
           }}
         >
           <Freeze frame={hold} active={now > hold}>
-            <OffthreadVideo src={staticFile(src)} playbackRate={rate} muted style={{ width: W, height: H, filter: "brightness(1.17) saturate(0.55)" }} />
+            <OffthreadVideo src={staticFile(src)} startFrom={from} playbackRate={rate} muted style={{ width: W, height: H, filter: "brightness(1.17) saturate(0.55)" }} />
           </Freeze>
         </AbsoluteFill>
       </>
@@ -198,7 +199,7 @@ export const LiveInsert: React.FC<{
     <AbsoluteFill style={{ transform: `scale(${settle})` }}>
       <AbsoluteFill style={{ transformOrigin: "0 0", transform: cam }}>
         <Freeze frame={hold} active={now > hold}>
-          <OffthreadVideo src={staticFile(src)} playbackRate={rate} muted style={{ width: W, height: H }} />
+          <OffthreadVideo src={staticFile(src)} startFrom={from} playbackRate={rate} muted style={{ width: W, height: H }} />
         </Freeze>
         {uiLayer}
       </AbsoluteFill>

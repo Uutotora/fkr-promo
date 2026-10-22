@@ -10,6 +10,7 @@ import { Prologue13, PROLOGUE13_FRAMES } from "./v13/Prologue13";
 import { SnapTest } from "./v13/SnapTest";
 import { MapTest } from "./v13/MapTest";
 import { Film13, DURATION as FILM13_FRAMES } from "./v13/film/Film13";
+import { Film14, DURATION as FILM14_FRAMES } from "./v14/Film14";
 import {PriceOfRepetition} from './repetition/PriceOfRepetition';
 import {RepeatScene} from './repetition/scenes/Repeat';
 import {LayersScene} from './repetition/scenes/Layers';
@@ -21,6 +22,7 @@ import {ValueScene} from './repetition/scenes/Value';
 export const RemotionRoot: React.FC = () => (
   <>
     <Composition id="V13Film" component={Film13} durationInFrames={FILM13_FRAMES} fps={60} width={1920} height={1080} />
+    <Composition id="V14Film" component={Film14} durationInFrames={FILM14_FRAMES} fps={60} width={1920} height={1080} />
     <Composition id="V13Map" component={MapTest} durationInFrames={3} fps={60} width={1920} height={1080} />
     <Composition id="V13Snap" component={SnapTest} durationInFrames={60} fps={60} width={1920} height={1080} defaultProps={{ snap: "dashboard", w: 1600, h: 900 }} />
     <Composition id="V13Prologue" component={Prologue13} durationInFrames={PROLOGUE13_FRAMES} fps={60} width={1920} height={1080} />
